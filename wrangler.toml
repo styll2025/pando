@@ -10,7 +10,8 @@ EMAIL_FROM = "The Good Span <pando@thegoodspan.com>" # must be on a domain verif
 EMAIL_REPLY_TO = "hello@thegoodspan.com"
 MODEL_CHAT = "claude-haiku-5-5"                      # fast model for the conversation
 MODEL_REPORT = "claude-sonnet-5-5"                   # stronger model for the report
+MODEL_TRANSCRIBE = "gpt-4o-mini-transcribe"          # voice messages
 COACH_ALERT_EMAIL = ""                               # optional: who gets emailed about red flags
 
 # Secrets are NOT stored here. Add them in the Cloudflare dashboard (see README):
-# ANTHROPIC_API_KEY, SUPABASE_SECRET_KEY, RESEND_API_KEY, SESSION_SECRET, TURNSTILE_SECRET
+# ANTHROPIC_API_KEY, OPENAI_API_KEY, SUPABASE_SECRET_KEY, RESEND_API_KEY, SESSION_SECRET, TURNSTILE_SECRET

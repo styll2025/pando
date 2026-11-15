@@ -11,6 +11,7 @@ The site and server code run on Cloudflare Pages. Submissions are stored in Supa
 | `public/index.html` | Cloudflare Pages | The welcome screen, the chat with Pando, and the report. Also shows each person's report at `/r/<id>`. |
 | `functions/api/session.js` | Pages Functions | Starts a session (checks Turnstile if set up) and returns a signed token. |
 | `functions/api/chat.js` | Pages Functions | Passes Pando's messages to the Anthropic API. The key stays on the server. |
+| `functions/api/transcribe.js` | Pages Functions | Turns a short voice recording into text with OpenAI. The text goes back into the message box; the audio is not stored. |
 | `functions/api/submit.js` | Pages Functions | Saves name, email, consent, conversation, flags and report to Supabase, sends the email, alerts coaches about red flags. |
 | `functions/api/report/[id].js` | Pages Functions | Returns a report for its private link. No email or conversation is ever sent to the browser. |
 | `functions/api/interest.js` | Pages Functions | Records "Register interest" from the report or the email. |
@@ -57,6 +58,7 @@ Pages project → **Settings** → **Variables and secrets** → add these as **
 | Name | Value |
 | --- | --- |
 | `ANTHROPIC_API_KEY` | Your Anthropic API key |
+| `OPENAI_API_KEY` | Your OpenAI API key, for the microphone (optional: without it, people type) |
 | `SUPABASE_SECRET_KEY` | Supabase secret key from step 1 |
 | `RESEND_API_KEY` | Your Resend API key |
 | `SESSION_SECRET` | Any long random string (e.g. from a password manager) |

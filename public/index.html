@@ -104,6 +104,7 @@ body:has(#chat.on) .top{background:var(--chat-bg)}
 .iconbtn.live{background:var(--orange);color:#000}
 .iconbtn svg{width:20px;height:20px}
 .iconbtn:disabled{opacity:.4;cursor:not-allowed}
+.hint.micon{color:var(--ink)}
 .hint{max-width:720px;margin:6px auto 0;text-align:center;font-family:var(--font-ui);font-size:11px;color:var(--ink-muted)}
 .welcome{overflow:auto}
 .wl{width:100%;max-width:640px;margin:0 auto;padding:clamp(40px,9vh,96px) clamp(18px,5vw,40px) 56px;display:grid;gap:28px;align-content:start}
@@ -598,6 +599,7 @@ downloads = { save: async ({ filename, data }) => {
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 } };
 ready = true;
+setupMic();
 
 async function submitReport() {
   const consentText = $('.consent span')?.textContent.trim() || '';
@@ -726,6 +728,7 @@ function renderLog(streamText) {
   for (const c of document.querySelectorAll('[data-chip]')) c.addEventListener('click', () => send(c.dataset.chip));
   const log = $('#log'); log.scrollTop = log.scrollHeight;
   $('#send').disabled = busy || !!S.screen;
+  const mc = $('#mic'); if (mc) mc.disabled = busy || !!S.screen || transcribing;
   const bx = $('#box'); bx.disabled = !!S.screen; bx.placeholder = S.screen ? 'Tap one of the answers above' : 'Message Pando…';
 }
 
@@ -898,22 +901,59 @@ $('#form').addEventListener('submit', e => {
 
 /* dictation */
 let dictOn = false, base = '';
+// Voice input: record, send to /api/transcribe (OpenAI), put the text in the message box to check and send.
+var rec = null, recChunks = [], recTimer = null, recStart = 0, transcribing = false;
+const MAX_REC_SECONDS = 120;
+function micStatus(text) { const h = $('.hint'); if (!h.dataset.orig) h.dataset.orig = h.textContent; h.textContent = text || h.dataset.orig; h.classList.toggle('micon', !!text); }
 function setupMic() {
-  if (!dict) return;
-  const mic = $('#mic'); mic.hidden = false;
-  dict.onPartial(({ text }) => { box.value = (base ? base + ' ' : '') + text; autosize(); });
-  dict.onFinal(({ text }) => { base = (base ? base + ' ' : '') + text; box.value = base; autosize(); });
-  dict.onState(({ state, reason }) => {
-    dictOn = state === 'listening';
-    mic.classList.toggle('live', dictOn);
-    mic.setAttribute('aria-label', dictOn ? 'Stop speaking' : 'Speak your answer');
-    if (reason === 'not_granted') mic.hidden = true;
-  });
-  mic.addEventListener('click', () => {
-    if (dictOn) { dict.stop().catch(() => {}); return; }
-    base = box.value.trim();
-    dict.start().catch(e => { if (e?.code === 'not_granted') mic.hidden = true; });
-  });
+  const mic = $('#mic');
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return; // very old browsers: typing only
+  mic.hidden = false;
+  dict = { stop: async () => stopRecording() };
+  mic.addEventListener('click', () => { if (dictOn) stopRecording(); else startRecording(); });
+}
+async function startRecording() {
+  if (busy || transcribing || S.screen) return;
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch { micStatus('Microphone access is blocked. You can allow it in your browser settings, or type instead.'); setTimeout(() => micStatus(''), 6000); return; }
+  const type = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find(t => MediaRecorder.isTypeSupported?.(t)) || '';
+  rec = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+  recChunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+  rec.onstop = () => { stream.getTracks().forEach(t => t.stop()); transcribe(new Blob(recChunks, { type: rec.mimeType || type || 'audio/webm' })); };
+  rec.start();
+  dictOn = true; recStart = Date.now();
+  const mic = $('#mic'); mic.classList.add('live'); mic.setAttribute('aria-label', 'Stop recording');
+  const tick = () => {
+    const s = Math.floor((Date.now() - recStart) / 1000);
+    micStatus(`Recording ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}. Tap the microphone again when you’ve finished.`);
+    if (s >= MAX_REC_SECONDS) stopRecording();
+  };
+  tick(); recTimer = setInterval(tick, 500);
+}
+function stopRecording() {
+  if (!rec || rec.state === 'inactive') return;
+  clearInterval(recTimer); dictOn = false;
+  const mic = $('#mic'); mic.classList.remove('live'); mic.setAttribute('aria-label', 'Speak your answer');
+  rec.stop();
+}
+async function transcribe(blob) {
+  if (blob.size < 1500) { micStatus(''); return; } // too short to contain speech
+  transcribing = true; $('#mic').disabled = true; micStatus('Transcribing…');
+  const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
+  const fd = new FormData(); fd.append('file', blob, `speech.${ext}`);
+  try {
+    let r = await fetch('/api/transcribe', { method: 'POST', headers: { 'X-Session': S.session || '' }, body: fd });
+    if (r.status === 401 && !CFG.turnstileSiteKey) { await newSession(); r = await fetch('/api/transcribe', { method: 'POST', headers: { 'X-Session': S.session || '' }, body: fd }); }
+    if (!r.ok) throw 0;
+    const { text } = await r.json();
+    if (text) { const cur = box.value.trim(); box.value = cur ? `${cur} ${text}` : text; autosize(); box.focus(); box.setSelectionRange(box.value.length, box.value.length); }
+    micStatus(text ? '' : 'We didn’t catch anything. Try again, a little closer to the microphone.');
+    if (!text) setTimeout(() => micStatus(''), 5000);
+  } catch {
+    micStatus('Voice didn’t work just then. Try again, or type your answer.'); setTimeout(() => micStatus(''), 6000);
+  } finally { transcribing = false; $('#mic').disabled = busy || !!S.screen; }
 }
 
 /* ---------- report ---------- */
