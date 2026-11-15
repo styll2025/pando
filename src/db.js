@@ -1,10 +1,14 @@
 // Minimal Supabase client using the REST API (no npm packages needed in Pages Functions).
 // Uses the secret (service role) key, which must only ever live in Cloudflare secrets.
 
+function secretKey(env) {
+  return env.SUPABASE_SECRET_KEY || env.SUPABASE_API_KEY;
+}
+
 function headers(env, extra = {}) {
-  const key = env.SUPABASE_SECRET_KEY;
+  const key = secretKey(env);
   const h = { apikey: key, 'content-type': 'application/json', ...extra };
-  if (!key.startsWith('sb_')) h.Authorization = `Bearer ${key}`; // legacy service_role JWT keys also need this
+  if (key && !key.startsWith('sb_')) h.Authorization = `Bearer ${key}`; // legacy service_role JWT keys also need this
   return h;
 }
 const base = env => `${env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/submissions`;

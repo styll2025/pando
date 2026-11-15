@@ -2,7 +2,7 @@
 
 Pando is The Good Span's conversational assessment. People chat with Pando for about 15–20 minutes and receive their personalised Starting Position by email, with a private link to their report.
 
-The site and server code run on Cloudflare Pages. Submissions are stored in Supabase. Emails are sent with Resend. Pando thinks with the Anthropic API.
+The site and server code run on Cloudflare Pages. Submissions are stored in Supabase. Emails are sent with Brevo. Pando thinks with the Anthropic API.
 
 ## How it fits together
 
@@ -22,7 +22,7 @@ The site and server code run on Cloudflare Pages. Submissions are stored in Supa
 
 ## One-time setup (about an hour)
 
-You need: your Cloudflare account (domain already on Cloudflare), this repo on GitHub, an Anthropic API key, and a Resend account.
+You need: your Cloudflare account (domain already on Cloudflare), this repo on GitHub, an Anthropic API key, and a Brevo account.
 
 ### 1. Create the table in Supabase
 
@@ -59,16 +59,16 @@ Pages project → **Settings** → **Variables and secrets** → add these as **
 | --- | --- |
 | `ANTHROPIC_API_KEY` | Your Anthropic API key |
 | `OPENAI_API_KEY` | Your OpenAI API key, for the microphone (optional: without it, people type) |
-| `SUPABASE_SECRET_KEY` | Supabase secret key from step 1 |
-| `RESEND_API_KEY` | Your Resend API key |
+| `SUPABASE_API_KEY` | Supabase secret key from step 1 (`sb_secret_…`, or the legacy service role key) |
+| `BREVO_API_KEY` | Your Brevo API key |
 | `SESSION_SECRET` | Any long random string (e.g. from a password manager) |
 | `TURNSTILE_SECRET` | From step 6 (optional but recommended) |
 
 The other settings (`EMAIL_FROM`, models, `COACH_ALERT_EMAIL`) live in `wrangler.toml`.
 
-### 5. Set up email sending (Resend)
+### 5. Set up email sending (Brevo)
 
-In Resend → **Domains** → add `thegoodspan.com`. Because your DNS is on Cloudflare, Resend can add the records for you (or copy the DNS records into Cloudflare). Once verified, emails send from `EMAIL_FROM` in `wrangler.toml`.
+In Brevo → **Senders & Domains** → verify `thegoodspan.com`, and make sure `pando@thegoodspan.com` is an allowed sender. Once verified, emails send from `EMAIL_FROM` in `wrangler.toml`.
 
 ### 6. Protect the chat from bots (Turnstile, recommended)
 

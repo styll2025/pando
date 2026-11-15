@@ -87,8 +87,29 @@ Your Starting Position draws on your responses and the practices in The Good Spa
   return { subject: 'Your Starting Position is ready', html, text };
 }
 
+function sender(from) {
+  const m = String(from || '').match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (!m) return { email: String(from || '').trim() };
+  return { name: m[1].replace(/^"|"$/g, ''), email: m[2].trim() };
+}
+
 export async function sendEmail(env, { to, subject, html, text }) {
-  if (!env.RESEND_API_KEY) return { ok: false, error: 'RESEND_API_KEY not set' };
+  if (env.BREVO_API_KEY) {
+    const from = sender(env.EMAIL_FROM);
+    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({
+        sender: from,
+        to: [{ email: to }],
+        replyTo: env.EMAIL_REPLY_TO ? { email: env.EMAIL_REPLY_TO } : undefined,
+        subject, htmlContent: html, textContent: text,
+      }),
+    });
+    if (r.ok) return { ok: true };
+    return { ok: false, error: `${r.status} ${(await r.text()).slice(0, 300)}` };
+  }
+  if (!env.RESEND_API_KEY) return { ok: false, error: 'BREVO_API_KEY not set' };
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },

@@ -9,7 +9,7 @@ const RED = ['crisis', 'crisis_keyword', 'urgent_symptoms', 'harm_from_others'];
 
 export async function onRequestPost({ request, env }) {
   if (!(await checkSession(env, request.headers.get('X-Session')))) return json({ error: 'session_expired' }, 401);
-  if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY) return json({ error: 'not_configured' }, 503);
+  if (!env.SUPABASE_URL || !(env.SUPABASE_SECRET_KEY || env.SUPABASE_API_KEY)) return json({ error: 'not_configured' }, 503);
   const raw = await request.text();
   if (raw.length > 1_500_000) return json({ error: 'too_large' }, 413);
   let b;
@@ -50,7 +50,7 @@ export async function onRequestPost({ request, env }) {
         html: `<p>A Pando conversation raised a red flag.</p><p>Name: ${esc(name)}<br>Flags: ${esc(flags.join(', '))}<br>Country used: ${esc(b.market || 'unknown')}</p><p><a href="${site}/admin/s/${id}">Open the coach view</a></p>`,
       });
     }
-    return json({ id, url: reportUrl, emailed: sent.ok });
+    return json({ id, url: reportUrl, emailed: sent.ok, emailError: sent.ok ? undefined : sent.error });
   } catch (e) {
     console.error(e);
     return json({ error: 'save_failed' }, 502);
