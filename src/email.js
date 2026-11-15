@@ -98,7 +98,7 @@ export async function sendEmail(env, { to, subject, html, text }) {
     const from = sender(env.EMAIL_FROM);
     const r = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
-      headers: { 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+      headers: { 'api-key': String(env.BREVO_API_KEY).trim(), 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify({
         sender: from,
         to: [{ email: to }],

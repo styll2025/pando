@@ -27,10 +27,18 @@ export async function onRequestPost({ request, env }) {
   try {
     // A regenerated report for the same person updates their existing row (no second email).
     if (b.id && /^[A-Za-z0-9]{16,64}$/.test(b.id)) {
-      const existing = await getSubmission(env, b.id, 'email');
+      const existing = await getSubmission(env, b.id, 'email,email_sent_at');
       if (existing && existing.email.toLowerCase() === email.toLowerCase()) {
         await updateSubmission(env, b.id, data);
-        return json({ id: b.id, url: `${site}/r/${b.id}`, emailed: null });
+        const reportUrl = `${site}/r/${b.id}`;
+        // The first attempt can save the report and still fail to send. A later save sends it once.
+        if (!existing.email_sent_at) {
+          const msg = reportEmail({ name, reportUrl, interestUrl: `${site}/api/interest?id=${b.id}`, siteUrl: site });
+          const sent = await sendEmail(env, { to: email, ...msg });
+          await updateSubmission(env, b.id, { email_sent_at: sent.ok ? new Date().toISOString() : null, email_error: sent.ok ? null : sent.error });
+          return json({ id: b.id, url: reportUrl, emailed: sent.ok, emailError: sent.ok ? undefined : sent.error });
+        }
+        return json({ id: b.id, url: reportUrl, emailed: null });
       }
     }
 
