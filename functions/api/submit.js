@@ -9,7 +9,7 @@ const RED = ['crisis', 'crisis_keyword', 'urgent_symptoms', 'harm_from_others'];
 
 export async function onRequestPost({ request, env }) {
   if (!(await checkSession(env, request.headers.get('X-Session')))) return json({ error: 'session_expired' }, 401);
-  if (!env.SUPABASE_URL || !(env.SUPABASE_SECRET_KEY || env.SUPABASE_API_KEY)) return json({ error: 'not_configured' }, 503);
+  if (!env.SUPABASE_URL || !(env.SUPABASE_SECRET_KEY || env.SUPABASE_API_KEY)) return json({ error: 'not_configured', build: 'supabase-api-key' }, 503);
   const raw = await request.text();
   if (raw.length > 1_500_000) return json({ error: 'too_large' }, 413);
   let b;
