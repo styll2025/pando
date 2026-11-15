@@ -1,0 +1,11 @@
+{
+  "name": "goodspan-pando",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev --port 8788"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.17"
+  }
+}
