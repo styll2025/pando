@@ -393,7 +393,7 @@ const hotFlushes = P => {
 const fallFollowUp = P => (P.fallRisk !== undefined ? !!P.fallRisk : age(P) !== null && age(P) < 60 ? false : null);
 
 const TOPICS = [
-  ['about.basics', 'about', 'A2: age range and sex, so suggestions can be tailored. Ask naturally and say why. Skipping is fine', 'core', ALL],
+  ['about.basics', 'about', 'A2: age range and gender, so suggestions can be tailored. Ask about their gender, never their sex. Offer chips: Woman, Man, Another gender, Prefer not to say. Say briefly why it helps tailor suggestions. Skipping is fine', 'core', ALL],
   ['about.work', 'about', 'A3: working pattern (daytime, shifts including nights, irregular, not working or retired) and whether they look after anyone (children, a partner, a parent)', 'core', ALL],
   ['about.health', 'about', 'A4: conditions a health professional has told them about, such as a heart condition, high blood pressure, diabetes, kidney or lung conditions', 'core', ALL],
   ['about.bp', 'about', 'A4a: whether they check their blood pressure at home, and whether they take medication for it', 'core', flagFrom('hbp')],
@@ -485,7 +485,9 @@ const TOPICS = [
   ['life.avoid', 'life', 'I6: anything they’d rather not do, such as tracking food, apps, fasting, meditation, journalling or early mornings', 'core', ALL],
 ];
 const TOPIC_IDS = new Set(TOPICS.map(t => t[0]));
-const PROFILE_OPTS = { age: Object.keys(AGE_MIN), sex: ['female', 'male', 'other'], work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'during', 'after', 'unknown'] };
+const PROFILE_OPTS = { age: Object.keys(AGE_MIN), work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'during', 'after', 'unknown'] };
+const GENDER_TO_SEX = { woman: 'female', female: 'female', man: 'male', male: 'male', other: 'other', unknown: 'unknown' };
+const GENDER_LABEL = { female: 'woman', male: 'man', other: 'another gender', unknown: 'prefer not to say' };
 
 // Screening questions with fixed wording and answers (validated tools), asked by the app, not paraphrased.
 const SCREENS = {
@@ -544,7 +546,7 @@ function plan() {
   }
   return Object.values(byId);
 }
-// A report needs the whole conversation: every topic that applies, and nothing still waiting on age, sex or work.
+// A report needs the whole conversation: every topic that applies, and nothing still waiting on age, gender or work.
 function conversationComplete() {
   const pl = plan();
   if (pl.some(t => t.tier === 'later')) return false;
@@ -799,7 +801,9 @@ function applyMeta(m) {
   S.chips = Array.isArray(m.chips) ? m.chips.filter(c => typeof c === 'string' && c.trim()).slice(0, 7).map(c => c.slice(0, 80)) : [];
   if (m.profile && typeof m.profile === 'object') {
     const p = m.profile, P = S.profile || (S.profile = {});
-    for (const k of ['age', 'sex', 'work']) if (PROFILE_OPTS[k].includes(p[k])) P[k] = p[k];
+    for (const k of ['age', 'work']) if (PROFILE_OPTS[k].includes(p[k])) P[k] = p[k];
+    const stated = typeof p.gender === 'string' ? p.gender : p.sex;
+    if (GENDER_TO_SEX[stated]) P.sex = GENDER_TO_SEX[stated];
     if (typeof p.conditions === 'boolean') P.conditions = p.conditions;
     for (const k of ['hbp', 'diabetes', 'fallRisk']) if (typeof p[k] === 'boolean') P[k] = p[k];
     if (PROFILE_OPTS.menopause.includes(p.menopause)) P.menopause = p.menopause;
@@ -824,7 +828,7 @@ function rules() {
   const pl = plan().filter(t => !S.covered.includes(t.id));
   const ask = pl.filter(t => t.tier === 'ask'), opt = pl.filter(t => t.tier === 'optional'), later = pl.filter(t => t.tier === 'later');
   const P = S.profile || {};
-  const known = [P.age && `age ${P.age}`, P.sex && P.sex, P.work && `work: ${P.work}`, P.conditions !== undefined && (P.conditions ? 'has a health condition' : 'no diagnosed conditions'), P.hbp && 'high blood pressure', P.diabetes && 'diabetes', P.menopause && `menopause: ${P.menopause}`, P.fallRisk !== undefined && (P.fallRisk ? 'has fallen or worries about falling' : 'no falls or worries'), P.focus?.length && `focus: ${P.focus.join(', ')}`].filter(Boolean).join('; ') || 'nothing yet';
+  const known = [P.age && `age ${P.age}`, GENDER_LABEL[P.sex] && `gender: ${GENDER_LABEL[P.sex]}`, P.work && `work: ${P.work}`, P.conditions !== undefined && (P.conditions ? 'has a health condition' : 'no diagnosed conditions'), P.hbp && 'high blood pressure', P.diabetes && 'diabetes', P.menopause && `menopause: ${P.menopause}`, P.fallRisk !== undefined && (P.fallRisk ? 'has fallen or worries about falling' : 'no falls or worries'), P.focus?.length && `focus: ${P.focus.join(', ')}`].filter(Boolean).join('; ') || 'nothing yet';
   return `You are Pando, the assistant for The Good Span, a programme that helps adults build healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. Their first name is ${S.user?.name || 'not given'}. Use it sparingly: now and then at a natural moment and in the wrap-up, never in every message. You are having a friendly, private conversation in British English to understand this person’s current habits, so that a personalised report can be written afterwards. You are not a doctor and you never diagnose.
 
 HOW TO TALK
@@ -862,7 +866,7 @@ SAFETY (the person is in ${lines().country || 'an unknown country'}; use these n
 
 PERSONALISATION
 Not everything is relevant to everyone. The list below is already tailored to what you know about this person, and it changes as you learn more. Ask what is on it, and nothing that isn’t.
-- Early on, after their first answer, find out the basics that shape everything else: their focus, age range and sex, work pattern, health conditions, and anything else important about their health. Do it lightly over two or three turns, explaining it helps you tailor things.
+- Early on, after their first answer, find out the basics that shape everything else: their focus, age range and gender, work pattern, health conditions, and anything else important about their health. Do it lightly over two or three turns, explaining it helps you tailor things. Ask about gender, never sex, and never use the word sex with them.
 - Adapt how you ask, not just what you ask: wording, examples and emphasis should suit their age, life stage, work and what they’ve told you (e.g. retirement versus a busy job with young children, night shifts, a health condition).
 - Go deeper in their focus areas. Elsewhere keep to the essentials, but every pillar still needs enough for a real summary: what a typical week looks like, how often, and what is working or not. A passing mention is not enough to mark that pillar’s topics covered.
 - Ask topics under “only if relevant” only when something they’ve said makes them matter (e.g. they mention poor sleep, so ask about caffeine and evening habits). Otherwise leave them out.
@@ -872,11 +876,11 @@ Not everything is relevant to everyone. The list below is already tailored to wh
 WHAT YOU KNOW ABOUT THEM: ${known}
 
 TO ASK (id: what to find out)
-${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || (later.length ? '(nothing to ask until you know their age, sex or work pattern)' : '(nothing left: wrap up warmly and set ready to true)')}
+${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || (later.length ? '(nothing to ask until you know their age, gender or work pattern)' : '(nothing left: wrap up warmly and set ready to true)')}
 
 ONLY IF RELEVANT (from what they’ve said)
 ${opt.map(t => `${t.id}: ${t.desc}`).join('\n') || '(none)'}
-${later.length ? `\nUNLOCKED ONCE YOU KNOW THEIR AGE, SEX OR WORK PATTERN (don’t ask yet): ${later.map(t => t.id).join(', ')}\n` : ''}
+${later.length ? `\nUNLOCKED ONCE YOU KNOW THEIR AGE, GENDER OR WORK PATTERN (don’t ask yet): ${later.map(t => t.id).join(', ')}\n` : ''}
 ALREADY COVERED (don’t ask again): ${S.covered.join(', ') || 'nothing yet'}
 
 The report is offered only when every topic under TO ASK is done and nothing is still listed as unlocked later. Do not set ready before that, even if they ask to finish. When that point is reached, give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
@@ -885,7 +889,7 @@ OUTPUT FORMAT, exactly:
 <your reply to the person>
 @@META
 {"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","chips":[],"flags":[],"screen":null,"ready":false}
-"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "sex" female, male or other; "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
+"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another gender) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
 Area ids: about, focus, nutrition, sleep, movement, mind, connection, prevention, life. Nothing after the JSON.`;
 }
 
@@ -1010,7 +1014,7 @@ STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change 
   · Flag exercise_symptoms or high_bp_reading: no step-ups in exercise intensity until a clinician has reviewed; keep to gentle activity they already do, and say their longevity coach will be in touch about clearance.
   · Flag alcohol_dependence: only gradual reduction, never suggest stopping suddenly; say their longevity coach will talk it through with them.
   · Flag food_relationship: no food tracking, calorie or portion targets, eating windows or restrictive practices.
-- Micro-personalise the choice: their age, sex, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, what they’d rather not do, the pace they asked for and the time they have (45–60 min → about 60 new minutes a week in total; 1–2 h → 120; 2–4 h → 240; 4 h+ → 300; unknown → 60).
+- Micro-personalise the choice: their age, gender, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, what they’d rather not do, the pace they asked for and the time they have (45–60 min → about 60 new minutes a week in total; 1–2 h → 120; 2–4 h → 240; 4 h+ → 300; unknown → 60).
 - Match levels to them: Learning practices for small steps or where they are starting out; Developing for “something in between”; Mastering only where they are already strong. Rows with no level are general practices: use them when they fit.
 - Never choose a practice whose caution applies to them without that caution being addressed, or anything clashing with what they told you. Don’t recommend what they already do well. Prefer Foundation and Targeted evidence; use Explore practices only as supporting elements.
 - For each recommendation, diagnose what gets in the way (COM-B: capability, opportunity or motivation) from what they said, and choose 2–4 MECHANISMS that answer it. Use social, tracking or reminder mechanisms only if they welcomed that kind of support. Never assume motivation is the problem.

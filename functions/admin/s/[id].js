@@ -15,7 +15,7 @@ export async function onRequestGet({ params, env }) {
   return html(page(r.name, `<p><a href="/admin">← All Starting Positions</a></p>
   <h1>${esc(r.name)}</h1>
   <p>${esc(r.email)} · ${esc(String(r.created_at).slice(0, 16).replace('T', ' '))} UTC · Country: ${esc(r.market || 'unknown')} · Interest: ${r.interest ? 'Yes, ' + esc(String(r.interest_at || '').slice(0, 10)) : 'No'} · <a href="/r/${r.id}" target="_blank" rel="noopener">Open report</a></p>
-  <h2>Profile</h2><p>${esc(Object.entries(profile).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' · ') || 'Not recorded')}</p>
+  <h2>Profile</h2><p>${esc(Object.entries(profile).map(([k, v]) => k === 'sex' ? `gender: ${{ female: 'woman', male: 'man', other: 'another gender', unknown: 'prefer not to say' }[v] || v}` : `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' · ') || 'Not recorded')}</p>
   <h2>Screening</h2><p>${esc(JSON.stringify(screens))}</p>
   <h2>Flags</h2>${flags}
   <h2>Conversation</h2>${conv}
