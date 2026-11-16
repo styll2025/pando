@@ -1124,6 +1124,11 @@ document.addEventListener('click', e => {
   b.setAttribute('aria-expanded', String(!open)); p.hidden = open;
 });
 function rich(x) { return esc(x).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); }
+const PILLAR_LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
+const PILLAR_BARS = { focus: 1, improve: 2, well: 3 };
+function pillarState(R, p) {
+  return (R.focus || []).includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve';
+}
 function honeycomb(R) {
   const r = 96, gap = 10, d = Math.sqrt(3) * r + gap, cx = 260, cy = 272;
   const hex = (x, y, rr = r) => Array.from({ length: 6 }, (_, k) => { const a = Math.PI / 180 * (60 * k); return `${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`; }).join(' ');
@@ -1136,33 +1141,30 @@ function honeycomb(R) {
     Prevention: '<path d="M12 19s-7-4.3-7-9.2A3.8 3.8 0 0 1 12 7.6a3.8 3.8 0 0 1 7 2.2C19 14.7 12 19 12 19Z"/><path d="M7.5 12.2h2.6l1.2-2 1.6 3.6 1.1-1.6h2.5"/>',
   };
   const pos = { Nutrition: -90, Sleep: -30, Movement: 30, Mind: 90, Connection: 150, Prevention: 210 };
-  const state = p => (R.focus.includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve');
-  const LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
   const cells = R.pillars.map(p => {
-    const a = pos[p.pillar] * Math.PI / 180, x = cx + d * Math.cos(a), y = cy + d * Math.sin(a), s = state(p);
+    const a = pos[p.pillar] * Math.PI / 180, x = cx + d * Math.cos(a), y = cy + d * Math.sin(a), s = pillarState(R, p);
     return `<g>
       <polygon points="${hex(x, y)}" fill="${s === 'focus' ? '#f5a4c2' : '#ffffff'}" stroke="#4d2831" stroke-width="2" ${s === 'improve' ? 'stroke-dasharray="7 5"' : ''} stroke-linejoin="round"/>
       <g transform="translate(${(x - 15).toFixed(1)} ${(y - 62).toFixed(1)}) scale(1.25)" fill="none" stroke="#4d2831" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[p.pillar]}</g>
       <text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="hc-name">${p.pillar.toUpperCase()}</text>
-      <text x="${x.toFixed(1)}" y="${(y + 30).toFixed(1)}" text-anchor="middle" class="hc-lv">${LABEL[s]}</text>
+      <text x="${x.toFixed(1)}" y="${(y + 30).toFixed(1)}" text-anchor="middle" class="hc-lv">${PILLAR_LABEL[s]}</text>
     </g>`;
   }).join('');
   const miniHex = (x, y, s) => `<polygon points="${hex(x, y, 11)}" fill="${s === 'focus' ? '#f5a4c2' : '#ffffff'}" stroke="#4d2831" stroke-width="1.5" ${s === 'improve' ? 'stroke-dasharray="3 2.5"' : ''}/>`;
-  const label = R.pillars.map(p => `${p.pillar}: ${LABEL[state(p)]}`).join('; ');
+  const label = R.pillars.map(p => `${p.pillar}: ${PILLAR_LABEL[pillarState(R, p)]}`).join('; ');
   return `<div class="honeypanel"><svg class="honey" viewBox="0 0 520 544" role="img" aria-label="${esc((S.user?.name || 'Your') + ' starting position. ' + label)}.">
     ${cells}
     <polygon points="${hex(cx, cy)}" fill="#4d2831"/>
     <text x="${cx}" y="${cy + 2}" text-anchor="middle" class="hc-you">${esc(S.user?.name || 'You')}</text>
     <text x="${cx}" y="${cy + 28}" text-anchor="middle" class="hc-start">STARTING POSITION</text>
   </svg>
-  <div class="hlegend">${['focus', 'improve', 'well'].map(s => `<span><svg viewBox="0 0 28 26" width="28" height="26" aria-hidden="true">${miniHex(14, 13, s)}</svg>${LABEL[s]}</span>`).join('')}</div></div>`;
+  <div class="hlegend">${['focus', 'improve', 'well'].map(s => `<span><svg viewBox="0 0 28 26" width="28" height="26" aria-hidden="true">${miniHex(14, 13, s)}</svg>${PILLAR_LABEL[s]}</span>`).join('')}</div></div>`;
 }
 function paras(s) { return String(s || '').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean).map(x => `<p>${rich(x)}</p>`).join(''); }
 
 function renderReport() {
   const R = S.report;
   if (!R) { openChat(); return; }
-  const lvN = { Learning: 1, Developing: 2, Mastering: 3 };
   const date = R.date ? new Date(R.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   $('#repInner').innerHTML = `
   <section>
@@ -1175,15 +1177,17 @@ function renderReport() {
   <section>
     <h2>Starting position.</h2>
     ${honeycomb(R)}
-    <div class="legend"><span>One bar: Learning</span><span>Two bars: Developing</span><span>Three bars: Mastering</span></div>
-    <div class="pgrid">${R.pillars.map(p => `
-      <article class="pc ${R.focus.includes(p.pillar) ? 'pri' : ''}" style="--ac:${color(areaOfPillar(p.pillar))}">
-        <div class="hd"><span>${p.pillar}</span><b class="lv">${p.level || 'Not enough to say'}</b></div>
-        <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= (lvN[p.level] || 0) ? 'on' : ''}"></i>`).join('')}</div>
-        ${R.focus.includes(p.pillar) ? '<p class="lowc">A focus area</p>' : ''}
+    <div class="legend"><span>One bar: Focus now</span><span>Two bars: Worth improving</span><span>Three bars: Going well</span></div>
+    <div class="pgrid">${R.pillars.map(p => {
+      const s = pillarState(R, p);
+      return `
+      <article class="pc ${s === 'focus' ? 'pri' : ''}" style="--ac:${color(areaOfPillar(p.pillar))}">
+        <div class="hd"><span>${p.pillar}</span><b class="lv">${PILLAR_LABEL[s]}</b></div>
+        <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= PILLAR_BARS[s] ? 'on' : ''}"></i>`).join('')}</div>
         <p>${rich(p.assessment)}</p>
         ${p.confidence === 'low' ? '<p class="lowc">Based on only a little of the conversation</p>' : ''}
-      </article>`).join('')}</div>
+      </article>`;
+    }).join('')}</div>
     ${R.focusWhy ? `<div class="prose">${paras(R.focusWhy)}</div>` : ''}
   </section>
 
@@ -1236,7 +1240,7 @@ function renderReport() {
 async function saveReport() {
   const R = S.report; if (!R || !downloads) return;
   const L = [`# The Good Span: ${S.user?.name ? S.user.name + '’s' : 'your'} report`, '', R.summary, '', '## Starting position', ''];
-  for (const p of R.pillars) L.push(`### ${p.pillar}: ${p.level || 'not enough to say'}${R.focus.includes(p.pillar) ? ' (focus area)' : ''}`, '', p.assessment, '');
+  for (const p of R.pillars) L.push(`### ${p.pillar}: ${PILLAR_LABEL[pillarState(R, p)]}`, '', p.assessment, '');
   if (R.focusWhy) L.push(R.focusWhy, '');
   L.push('## Our recommendations for you', '');
   for (const r of R.recommendations) L.push(`### ${r.title}`, '', ...(r.why ? ['**Why this, for you.** ' + r.why, '', '**What to do.** ' + r.what, '', '**Making it stick.** ' + r.stick] : [r.body]), '', `_Practices: ${r.practiceIds.map(id => LIBMAP[id].f).join('; ')}._`, '');
