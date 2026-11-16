@@ -284,7 +284,7 @@ strong{font-weight:500}
   </main>
 
   <main class="view" id="report">
-    <div class="repbar"><button class="btn" id="backChat" type="button">Back to the chat with Pando</button><button class="btn primary" id="dl" type="button" hidden>Save report</button></div>
+    <div class="repbar"><button class="btn" id="backChat" type="button">Back to the chat with Pando</button></div>
     <div class="rep" id="repInner"></div>
   </main>
 </div>
@@ -561,7 +561,7 @@ S.ready = conversationComplete();
 function load() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
-let sample = null, dict = null, downloads = null, ctl = null, busy = false, lastErr = null, ready = false;
+let sample = null, dict = null, ctl = null, busy = false, lastErr = null, ready = false;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const color = id => `var(--c-${id})`;
@@ -601,11 +601,6 @@ function makeSample() {
   return f;
 }
 sample = makeSample();
-downloads = { save: async ({ filename, data }) => {
-  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data]));
-  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-} };
 ready = true;
 setupMic();
 
@@ -639,6 +634,7 @@ async function loadReport(id) {
   save = () => {};
   show('report');
   $('#backChat').hidden = true;
+  $('.repbar').hidden = true;
   $('#repInner').innerHTML = '<div class="loading"><h2>Opening your Starting Position.</h2><div class="bar"><i></i></div></div>';
   try {
     const r = await fetch(`/api/report/${id}`);
@@ -966,7 +962,6 @@ async function transcribe(blob) {
 
 /* ---------- report ---------- */
 $('#backChat').addEventListener('click', openChat);
-$('#dl').addEventListener('click', saveReport);
 
 function libForPrompt() {
   return LIB.map(x => `${x.id}|${x.p}|${x.c}|${x.f}|${x.d}|${x.l || '-'}|effort ${x.e || '-'}|${x.ev || x.tier || '-'}${x.caution ? '|caution: ' + x.caution : ''}${x.prof ? '|for: ' + x.prof : ''}`).join('\n');
@@ -1069,7 +1064,6 @@ async function makeReport() {
   if (busy || !sample || !conversationComplete()) { S.ready = conversationComplete(); renderLog(); return; }
   if (dictOn) dict.stop().catch(() => {});
   show('report');
-  $('#dl').hidden = true;
   $('#repInner').innerHTML = `<div class="loading"><h2>Writing your personalised report.</h2><p class="muted" id="ls">Reading your conversation…</p><div class="bar"><i></i></div><p class="fine muted">This takes a minute or two. We’re choosing from over 450 evidence-based practices and tailoring each one to you.</p><div class="row"><button class="btn" id="cancelRep" type="button">Back to the chat</button></div></div>`;
   const status = t => { const el = $('#ls'); if (el) el.textContent = t; };
   ctl = new AbortController();
@@ -1179,7 +1173,7 @@ function renderReport() {
     <p class="ui muted">${esc(date)}</p>
     <h1>${S.user?.name ? esc(S.user.name) + ', here’s where you are.' : 'Here’s where you are.'}</h1>
     <div class="sum">${paras(R.summary)}</div>
-    ${S.viewOnly ? '' : S.reportUrl ? `<p class="fine savednote">${S.emailed ? `We’ve emailed your Starting Position to ${esc(S.user?.email || 'you')}. ` : ''}You can come back to it any time at <a href="${esc(S.reportUrl)}">${esc(S.reportUrl.replace(/^https?:\/\//, ''))}</a>.</p>` : S.submitError ? `<p class="fine savednote">We couldn’t save your Starting Position just now. <a href="#" id="retrySave">Try again</a>, or use “Save report” above.</p>` : `<p class="fine savednote muted">Saving your Starting Position and sending it to your inbox…</p>`}
+    ${S.viewOnly ? '' : S.reportUrl ? `<p class="fine savednote">${S.emailed ? `We’ve emailed your Starting Position to ${esc(S.user?.email || 'you')}. ` : ''}You can come back to it any time at <a href="${esc(S.reportUrl)}">${esc(S.reportUrl.replace(/^https?:\/\//, ''))}</a>.</p>` : S.submitError ? `<p class="fine savednote">We couldn’t save your Starting Position just now. <a href="#" id="retrySave">Try again</a>.</p>` : `<p class="fine savednote muted">Saving your Starting Position and sending it to your inbox…</p>`}
   </section>
 
   <section>
@@ -1239,24 +1233,8 @@ function renderReport() {
   ${S.flags.includes('crisis') || S.flags.includes('crisis_keyword') ? `<section><div class="prose"><p>If you’re struggling or don’t feel safe, please talk to someone now. You can contact ${esc(lines().crisis)}, or call ${esc(lines().emergency)} in an emergency.</p></div></section>` : ''}
 
   <p class="disc muted">This report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice.</p>`;
-  $('#dl').hidden = !downloads;
   $('#retrySave')?.addEventListener('click', e => { e.preventDefault(); S.submitError = false; renderReport(); submitReport(); });
   $('#report').scrollTop = 0;
-}
-
-async function saveReport() {
-  const R = S.report; if (!R || !downloads) return;
-  const L = [`# The Good Span: ${S.user?.name ? S.user.name + '’s' : 'your'} report`, '', R.summary, '', '## Starting position', ''];
-  for (const p of R.pillars) L.push(`### ${p.pillar}: ${PILLAR_LABEL[pillarState(R, p)]}`, '', p.assessment, '');
-  if (R.focusWhy) L.push(R.focusWhy, '');
-  L.push('## Our recommendations for you', '');
-  for (const r of R.recommendations) L.push(`### ${r.title}`, '', ...(r.why ? ['**Why this, for you.** ' + r.why, '', '**What to do.** ' + r.what, '', '**Making it stick.** ' + r.stick] : [r.body]), '', `_Practices: ${r.practiceIds.map(id => LIBMAP[id].f).join('; ')}._`, '');
-  if (R.week) L.push('## How it could fit your week', '', R.week, '');
-  if (R.keepDoing) L.push('## Keep doing', '', R.keepDoing, '');
-  if (R.notCovered) L.push('## What we didn’t get to', '', R.notCovered, '');
-  L.push('## Your next steps', '', '**Begin with one practice.** Choose the recommendation that feels most doable this week and start there. You don’t need to do everything at once.', '', '**Meet your longevity coach (from January 2027).** A longevity coach can talk through your Starting Position with you, refine your Good Span to fit your life and help you choose the membership that suits you. Register your interest and we’ll be in touch as soon as bookings open.', '');
-  L.push('_This report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice._');
-  try { await downloads.save({ filename: 'good-span-report.md', data: new Blob([L.join('\n')], { type: 'text/markdown' }) }); } catch {}
 }
 </script>
 </body>
