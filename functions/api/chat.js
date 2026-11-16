@@ -25,10 +25,14 @@ export async function onRequestPost({ request, env }) {
   if (msgs[msgs.length - 1].role !== 'user') msgs.pop();
 
   const stream = body.stream !== false;
+  // The report model thinks by default, and a long plan can spend the whole token budget before any JSON is written.
+  const thinkingOff = tier === 'default'
+    ? (String(model).includes('sonnet-5-5') ? { thinking: { type: 'between_tools' }, output_config: { effort: 'high' } } : { thinking: { type: 'disabled' } })
+    : {};
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-    body: JSON.stringify({ model, max_tokens: LIMITS[tier], messages: msgs, stream }),
+    body: JSON.stringify({ model, max_tokens: LIMITS[tier], messages: msgs, stream, ...thinkingOff }),
   });
   if (!r.ok) {
     const code = r.status === 429 || r.status === 529 ? 'rate_limited' : r.status === 400 ? 'refused' : 'upstream_error';
