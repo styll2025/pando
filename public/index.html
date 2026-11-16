@@ -544,12 +544,20 @@ function plan() {
   }
   return Object.values(byId);
 }
+// A report needs the whole conversation: every topic that applies, and nothing still waiting on age, sex or work.
+function conversationComplete() {
+  const pl = plan();
+  if (pl.some(t => t.tier === 'later')) return false;
+  const ask = pl.filter(t => t.tier === 'ask');
+  return ask.length > 0 && ask.every(t => S.covered.includes(t.id));
+}
 const FLAGS = { exercise_symptoms: 'Possible warning symptoms with exercise', sleep_apnoea_signs: 'Loud snoring or breathing pauses', mood: 'Low mood or anxiety on many days', crisis: 'Said they may be at risk', food_relationship: 'Difficult relationship with food', pregnant: 'Pregnant', breastfeeding: 'Breastfeeding', shift_work: 'Shift or night work', condition_inactive: 'Heart, metabolic or kidney condition', pain_injury: 'Pain, injury or joint limitation', fall: 'Fall in the past 12 months', nut_allergy: 'Nut allergy', higher_risk_drinking: 'Higher-risk drinking', smokes: 'Smokes or vapes' };
 
 const KEY = 'tgs-chat-v8';
 const welcomeFor = name => `Hi ${name}, I’m Pando.\n\nI’d like to help you build a clearer picture of how you’re doing across the areas of life that contribute to long-term health and wellbeing: nutrition, sleep, movement, mind, connection and prevention.\n\nWe’ll spend around 15 minutes talking about your everyday habits, what matters to you, what’s working well and where you might want to make a change. I’ll use what you share to create a personalised Good Span report, with practical suggestions that take your circumstances, preferences and goals into account.\n\nThere are no right or wrong answers, and this isn’t a test. The aim is to understand what matters to you and help you find a realistic place to start.\n\nTo begin, what’s prompted you to explore your health and wellbeing at this point in your life?`;
 const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
 let S = load() || fresh();
+S.ready = conversationComplete();
 function load() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
@@ -788,7 +796,7 @@ function answerScreen(ans) {
 }
 
 function applyMeta(m) {
-  if (!m || typeof m !== 'object') { S.chips = []; return; }
+  if (!m || typeof m !== 'object') { S.chips = []; S.ready = conversationComplete(); return; }
   for (const id of (Array.isArray(m.covered) ? m.covered : [])) if (TOPIC_IDS.has(id) && !S.covered.includes(id)) S.covered.push(id);
   for (const f of (Array.isArray(m.flags) ? m.flags : [])) if (typeof f === 'string' && /^[a-z_]{3,30}$/.test(f) && !S.flags.includes(f)) addFlag(f);
   if (AREAS.some(a => a.id === m.area)) S.area = m.area;
@@ -802,7 +810,7 @@ function applyMeta(m) {
     if (P.conditions === true) { P.hbp ??= false; P.diabetes ??= false; }
     if (Array.isArray(p.focus)) { const f = p.focus.filter(x => PILLARS.includes(x)).slice(0, 3); if (f.length) P.focus = f; }
   }
-  if (m.ready === true) S.ready = true;
+  S.ready = conversationComplete();
 }
 
 function errCopy(code) {
@@ -832,7 +840,7 @@ HOW TO TALK
 - Prefer open catch-alls to narrow checks where a list can’t name everything (e.g. “Is there anything else important to know about your sleep, such as snoring or breathing problems?”).
 - Notice things mentioned in passing and mark those topics covered. Never re-ask something already answered.
 - “Prefer not to say” or skipping is always fine: mark the topic covered and move on.
-- If they want to stop early, check they’re sure, then wrap up and set ready to true.
+- If they want to stop early, say gently that the report needs a picture of all six areas, then ask the next question. Do not wrap up and do not set ready.
 
 CONVERSATION STYLE
 This is an open, natural chat. Let the person lead: follow what they bring up and weave the remaining topics in through natural bridges rather than a fixed order (though finish one area before jumping far away). Ask open questions by default.
@@ -860,7 +868,7 @@ PERSONALISATION
 Not everything is relevant to everyone. The list below is already tailored to what you know about this person, and it changes as you learn more. Ask what is on it, and nothing that isn’t.
 - Early on, after their first answer, find out the basics that shape everything else: their focus, age range and sex, work pattern, health conditions, and anything else important about their health. Do it lightly over two or three turns, explaining it helps you tailor things.
 - Adapt how you ask, not just what you ask: wording, examples and emphasis should suit their age, life stage, work and what they’ve told you (e.g. retirement versus a busy job with young children, night shifts, a health condition).
-- Go deeper in their focus areas. Elsewhere keep to the essentials.
+- Go deeper in their focus areas. Elsewhere keep to the essentials, but every pillar still needs enough for a real summary: what a typical week looks like, how often, and what is working or not. A passing mention is not enough to mark that pillar’s topics covered.
 - Ask topics under “only if relevant” only when something they’ve said makes them matter (e.g. they mention poor sleep, so ask about caffeine and evening habits). Otherwise leave them out.
 - Respect what they’ve shared: if they mention something sensitive, don’t ask more than they offer.
 - In their focus areas, once you understand the habit, ask briefly what gets in the way if they haven’t said (knowing how, time or access, remembering, energy, confidence or motivation), and what has worked for them before. This shapes how the report helps them follow through.
@@ -868,14 +876,14 @@ Not everything is relevant to everyone. The list below is already tailored to wh
 WHAT YOU KNOW ABOUT THEM: ${known}
 
 TO ASK (id: what to find out)
-${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || '(nothing left: wrap up warmly and set ready to true)'}
+${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || (later.length ? '(nothing to ask until you know their age, sex or work pattern)' : '(nothing left: wrap up warmly and set ready to true)')}
 
 ONLY IF RELEVANT (from what they’ve said)
 ${opt.map(t => `${t.id}: ${t.desc}`).join('\n') || '(none)'}
 ${later.length ? `\nUNLOCKED ONCE YOU KNOW THEIR AGE, SEX OR WORK PATTERN (don’t ask yet): ${later.map(t => t.id).join(', ')}\n` : ''}
 ALREADY COVERED (don’t ask again): ${S.covered.join(', ') || 'nothing yet'}
 
-When nothing is left under TO ASK (and anything relevant under ONLY IF RELEVANT is done), give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
+The report is offered only when every topic under TO ASK is done and nothing is still listed as unlocked later. Do not set ready before that, even if they ask to finish. When that point is reached, give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
 
 OUTPUT FORMAT, exactly:
 <your reply to the person>
@@ -986,7 +994,7 @@ function planPrompt() {
 ${CONTEXT()}
 TOPICS NOT REACHED: ${plan().filter(t => t.tier === 'ask' && !S.covered.includes(t.id)).map(t => t.id).join(', ') || 'none'}
 
-STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). "confidence" is "low" if the conversation said little. "assessment" is 2–4 sentences using what they actually said.
+STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). The conversation has covered every pillar, so "assessment" is 2–4 sentences on their current habits, using what they told you. Never say the conversation was too short, that you didn’t get to this area, or that there isn’t enough to go on.
 Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects AUDIT-C, smoking and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
 
 STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change in one area of their life (e.g. their evenings, their working day, how they exercise), built from 2–5 complementary practices from the LIBRARY that work together. Rules:
@@ -1025,7 +1033,7 @@ Reply with ONLY this JSON:
 "focusWhy":"one paragraph on why these areas first",
 "plan":[{"pillar":"Sleep","theme":"2–4 word label, e.g. Evening wind-down","practiceIds":["SL36","SL48","SL32"],"barriers":"what gets in their way for this change, in their own terms","mechanisms":["Habit stacking","Friction reduction"]}],
 "keepDoing":"one paragraph on what they already do well and why it’s worth protecting",
-"notCovered":"one sentence on anything too thin to judge, or empty string"}`;
+"notCovered":""}`;
 }
 
 function writePrompt(P) {
@@ -1058,7 +1066,7 @@ Reply with ONLY this JSON:
 }
 
 async function makeReport() {
-  if (busy || !sample) return;
+  if (busy || !sample || !conversationComplete()) { S.ready = conversationComplete(); renderLog(); return; }
   if (dictOn) dict.stop().catch(() => {});
   show('report');
   $('#dl').hidden = true;
@@ -1184,8 +1192,7 @@ function renderReport() {
       <article class="pc ${s === 'focus' ? 'pri' : ''}" style="--ac:${color(areaOfPillar(p.pillar))}">
         <div class="hd"><span>${p.pillar}</span><b class="lv">${PILLAR_LABEL[s]}</b></div>
         <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= PILLAR_BARS[s] ? 'on' : ''}"></i>`).join('')}</div>
-        <p>${rich(p.assessment)}</p>
-        ${p.confidence === 'low' ? '<p class="lowc">Based on only a little of the conversation</p>' : ''}
+        <p>${rich(String(p.assessment || '').replace(/\s*based on only a little of the conversation\.?/ig, '').trim())}</p>
       </article>`;
     }).join('')}</div>
     ${R.focusWhy ? `<div class="prose">${paras(R.focusWhy)}</div>` : ''}
@@ -1210,7 +1217,7 @@ function renderReport() {
 
   ${R.week ? `<section><h2>How it could fit your week.</h2><div class="prose">${paras(R.week)}</div></section>` : ''}
   ${R.keepDoing ? `<section><h2>Keep doing.</h2><div class="prose">${paras(R.keepDoing)}</div></section>` : ''}
-  ${R.notCovered ? `<section><h2>What we didn’t get to.</h2><div class="prose">${paras(R.notCovered)}<p class="fine muted">You can go back to the chat to fill this in, then create the report again.</p></div></section>` : ''}
+  ${R.notCovered ? `<section><h2>What we didn’t get to.</h2><div class="prose">${paras(R.notCovered)}</div></section>` : ''}
   <section>
     <h2>Your next steps.</h2>
     <div class="steps">
