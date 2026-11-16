@@ -36,7 +36,9 @@ export async function onRequestPost({ request, env }) {
   }
   if (!stream) {
     const out = await r.json();
-    const text = (out.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    const blocks = out.content || [];
+    const text = blocks.filter(b => b.type === 'text').map(b => b.text).join('');
+    if (!text) return json({ text, stop: out.stop_reason || '', types: blocks.map(b => b.type) });
     return json({ text });
   }
 
