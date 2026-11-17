@@ -13,7 +13,7 @@ const button = (href, label, bg, fg) => `
 export function reportEmail({ name, reportUrl, interestUrl, siteUrl }) {
   const n = esc(name || 'there');
   const html = `<!doctype html>
-<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Your Starting Position is ready</title></head>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Your Good Span report is ready</title></head>
 <body style="margin:0;padding:0;background:${BLUE}">
 <div style="display:none;max-height:0;overflow:hidden">Your personalised report, and what happens next.</div>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:${BLUE}"><tr><td align="center" style="padding:40px 16px">
@@ -25,10 +25,10 @@ export function reportEmail({ name, reportUrl, interestUrl, siteUrl }) {
 
 <tr><td align="center" style="padding:44px 40px 40px;text-align:center">
 <p style="margin:0 0 18px;font-family:${UI};font-size:12px;letter-spacing:0.14em;text-transform:uppercase">Your Starting Position</p>
-<h1 style="margin:0 0 22px;font-family:${SANS};font-weight:300;font-size:38px;line-height:1.1;color:${PLUM}">Your Starting Position is ready.</h1>
+<h1 style="margin:0 0 22px;font-family:${SANS};font-weight:300;font-size:38px;line-height:1.1;color:${PLUM}">Your Good Span report is ready.</h1>
 <p style="margin:0 0 14px;font-size:17px;line-height:27px">Hi ${n},</p>
 <p style="margin:0 0 14px;font-size:17px;line-height:27px">Thank you for taking the time to chat with Pando.</p>
-<p style="margin:0 0 28px;font-size:17px;line-height:27px">Your Starting Position is ready. It brings together a picture of where you are today across the six areas of longevity, along with personalised recommendations to help you build on your current habits and support your long-term health.</p>
+<p style="margin:0 0 28px;font-size:17px;line-height:27px">Your Good Span report is ready. It brings together a picture of where you are today across the six areas of longevity, along with personalised recommendations to help you build on your current habits and support your long-term health.</p>
 <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0"><tr><td>${button(reportUrl, 'View your Starting Position', PLUM, CREAM)}</td></tr></table>
 </td></tr>
 
@@ -66,7 +66,7 @@ ${button(interestUrl, 'Register interest', BLUE, PLUM)}
 
 Thank you for taking the time to chat with Pando.
 
-Your Starting Position is ready. It brings together a picture of where you are today across the six areas of longevity, along with personalised recommendations to help you build on your current habits and support your long-term health.
+Your Good Span report is ready. It brings together a picture of where you are today across the six areas of longevity, along with personalised recommendations to help you build on your current habits and support your long-term health.
 
 View your Starting Position: ${reportUrl}
 
@@ -84,7 +84,7 @@ The Good Span team
 
 Your Starting Position draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice.`;
 
-  return { subject: 'Your Starting Position is ready', html, text };
+  return { subject: 'Your Good Span report is ready', html, text };
 }
 
 function sender(from) {
