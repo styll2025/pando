@@ -1321,12 +1321,19 @@ function reportHTML() {
   <p class="disc muted">This report draws on your responses and The Good Span Longevity Library, which brings together 250+ scientific studies and medical sources on longevity, healthy ageing and wellbeing. It is intended to support your health and wellbeing, not replace professional medical advice.</p>`;
 }
 
-function renderReport() {
+function renderReport(keepScroll = false) {
   if (!S.report) { openChat(); return; }
   $('#repInner').innerHTML = reportHTML();
-  $('#report').scrollTop = 0;
+  if (!keepScroll) $('#report').scrollTop = 0;
 }
-function refreshReport() { if ($('#report').classList.contains('on')) renderReport(); else renderLog(); }
+// Re-draws the report after a small change (register interest, email status) without moving the page.
+function refreshReport() {
+  const onReport = $('#report').classList.contains('on');
+  const box = onReport ? $('#report') : $('#log');
+  const y = box.scrollTop;
+  if (onReport) renderReport(true); else renderLog();
+  box.scrollTop = y;
+}
 
 // Report buttons work wherever the report is shown (in the chat or on its own page).
 document.addEventListener('click', async e => {
