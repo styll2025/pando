@@ -55,7 +55,7 @@ ${button(interestUrl, 'Register interest', BLUE, PLUM)}
 <tr><td style="padding:0 40px 36px;font-size:16px;line-height:25px">Warm regards,<br>The Good Span team</td></tr>
 
 <tr><td style="padding:24px 40px 32px;border-top:1px solid ${PLUM};font-size:12px;line-height:19px;color:${MUTED}">
-<p style="margin:0 0 10px">Your report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice.</p>
+<p style="margin:0 0 10px">Your report draws on your responses and The Good Span Longevity Library, which brings together 250+ scientific studies and medical sources on longevity, healthy ageing and wellbeing. It is intended to support your health and wellbeing, not replace professional medical advice.</p>
 <p style="margin:0 0 12px">You’re receiving this email because you completed a conversation with Pando.</p>
 <p style="margin:0;font-family:${UI};font-size:11px;letter-spacing:0.12em;text-transform:uppercase"><a href="${siteUrl}/privacy" style="color:${PLUM}">Privacy policy</a> &nbsp;·&nbsp; <a href="mailto:hello@thegoodspan.com" style="color:${PLUM}">Contact us</a></p>
 </td></tr>
@@ -82,7 +82,7 @@ Register interest: ${interestUrl}
 Warm regards,
 The Good Span team
 
-Your report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice.`;
+Your report draws on your responses and The Good Span Longevity Library, which brings together 250+ scientific studies and medical sources on longevity, healthy ageing and wellbeing. It is intended to support your health and wellbeing, not replace professional medical advice.`;
 
   return { subject: 'Your Good Span report is ready', html, text };
 }
