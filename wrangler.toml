@@ -12,6 +12,7 @@ MODEL_CHAT = "claude-haiku-5-5"                      # fast model for the conver
 MODEL_REPORT = "claude-sonnet-5-5"                   # stronger model for the report
 MODEL_TRANSCRIBE = "gpt-4o-mini-transcribe"          # voice messages
 COACH_ALERT_EMAIL = ""                               # optional: who gets emailed about red flags
+CLOUDFLARE_ACCOUNT_ID = "8d3d92d3efdb3ede3322d649d2f5d101" # used by the report PDF (Browser Run)
 
 # Secrets are NOT stored here. Add them in the Cloudflare dashboard (see README):
-# ANTHROPIC_API_KEY, OPENAI_API_KEY, SUPABASE_API_KEY, BREVO_API_KEY, SESSION_SECRET, TURNSTILE_SECRET
+# ANTHROPIC_API_KEY, OPENAI_API_KEY, SUPABASE_API_KEY, BREVO_API_KEY, SESSION_SECRET, TURNSTILE_SECRET, CF_BROWSER_TOKEN

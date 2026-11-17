@@ -94,6 +94,10 @@ body:has(#chat.on) .top{background:var(--chat-bg)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;padding-left:38px}
 .chips button{font-family:var(--font-ui);font-size:13px;line-height:1.25;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;text-align:left}
 .chips button:hover{background:var(--surface-alt)}
+.chips.multi button[aria-pressed="true"]{background:var(--button-fill);color:var(--button-ink);border-color:var(--button-fill)}
+.chips .chipsend{background:var(--button-fill);color:var(--button-ink);border-color:var(--button-fill);font-weight:500}
+.chips .chipsend:disabled{opacity:.4;cursor:not-allowed}
+#chat .chips.multi button[aria-pressed="true"],#chat .chips .chipsend{background:var(--button-fill);color:var(--button-ink)}
 .readyc{margin-left:38px;color:var(--plum);display:grid;gap:12px;justify-items:start;padding:18px 20px;border-radius:20px;background:var(--surface-alt);max-width:min(560px,82%)}
 .composer{flex:none;padding:10px clamp(12px,3vw,24px) 14px}
 .cinner{max-width:720px;margin:0 auto;display:flex;gap:6px;align-items:flex-end;border:1px solid var(--line);border-radius:26px;padding:5px 5px 5px 16px;background:var(--bot)}
@@ -211,6 +215,31 @@ strong{font-weight:500}
 @media (max-width:860px){.steps{grid-template-columns:minmax(0,1fr)}}
 .savednote{margin-top:6px;max-width:70ch}.savednote a{color:inherit;overflow-wrap:anywhere}
 .sdone{font-size:16px;line-height:24px;padding:12px 16px;border-radius:16px;background:rgba(209,230,233,.18)}
+.rtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.rdl{display:flex;justify-content:center}
+.rdl .btn{height:48px;padding:0 32px}
+.inrep{margin:10px 0 6px;background:var(--surface);border:1px solid var(--line);border-radius:32px;overflow:hidden}
+.inrep .rep{padding:clamp(22px,4vw,40px) clamp(18px,3.5vw,36px) 36px;gap:clamp(36px,5vw,56px);max-width:none}
+.inrep .rep h1{font-size:clamp(32px,5vw,44px)}
+.inrep .rep h2{font-size:clamp(24px,3.4vw,30px)}
+.inrep .pgrid,.inrep .steps{grid-template-columns:minmax(0,1fr)}
+@media (min-width:620px){.inrep .pgrid,.inrep .steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.inrep .card{padding:24px 24px}
+.readyc.gen{max-width:min(560px,82%)}
+.readyc .bar{height:6px;border-radius:999px;border:1px solid var(--line);overflow:hidden}
+.readyc .bar i{display:block;height:100%;width:30%;background:var(--orange);animation:slide 1.6s ease-in-out infinite}
+#printArea{display:none}
+@media print{
+  @page{margin:14mm}
+  body.printing .shell{display:none!important}
+  body.printing #printArea{display:block}
+  body.printing{background:#fff!important;color:#4d2831!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea .plogo{height:16px;margin:0 0 18px}
+  #printArea .rep{padding:0;gap:28px;max-width:none}
+  #printArea .noprint,#printArea .evbtn,#printArea .evpanel,#printArea .sbtn,#printArea .savednote,#printArea .sdone{display:none!important}
+  #printArea .card,#printArea .pc,#printArea .step,#printArea .honeypanel,#printArea section > h2{break-inside:avoid}
+  #printArea h2{break-after:avoid}
+}
 .disc{font-size:14px;line-height:1.5;border-top:1px solid var(--soft-line);padding-top:18px}
 .loading{display:grid;gap:18px;max-width:560px;padding-top:8vh}
 .loading .bar{height:6px;border-radius:999px;border:1px solid var(--line);overflow:hidden}
@@ -546,24 +575,16 @@ function plan() {
   }
   return Object.values(byId);
 }
-// A report needs the whole conversation: every topic that applies, and nothing still waiting on age, gender or work.
-function conversationComplete() {
-  const pl = plan();
-  if (pl.some(t => t.tier === 'later')) return false;
-  const ask = pl.filter(t => t.tier === 'ask');
-  return ask.length > 0 && ask.every(t => S.covered.includes(t.id));
-}
 const FLAGS = { exercise_symptoms: 'Possible warning symptoms with exercise', sleep_apnoea_signs: 'Loud snoring or breathing pauses', mood: 'Low mood or anxiety on many days', crisis: 'Said they may be at risk', food_relationship: 'Difficult relationship with food', pregnant: 'Pregnant', breastfeeding: 'Breastfeeding', shift_work: 'Shift or night work', condition_inactive: 'Heart, metabolic or kidney condition', pain_injury: 'Pain, injury or joint limitation', fall: 'Fall in the past 12 months', nut_allergy: 'Nut allergy', higher_risk_drinking: 'Higher-risk drinking', smokes: 'Smokes or vapes' };
 
 const KEY = 'tgs-chat-v8';
 const welcomeFor = name => `Hi ${name}, I’m Pando.\n\nI’d like to help you build a clearer picture of how you’re doing across the areas of life that contribute to long-term health and wellbeing: nutrition, sleep, movement, mind, connection and prevention.\n\nWe’ll spend around 15 minutes talking about your everyday habits, what matters to you, what’s working well and where you might want to make a change. I’ll use what you share to create a personalised Good Span report, with practical suggestions that take your circumstances, preferences and goals into account.\n\nThere are no right or wrong answers, and this isn’t a test. The aim is to understand what matters to you and help you find a realistic place to start.\n\nTo begin, what’s prompted you to explore your health and wellbeing at this point in your life?`;
 const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
 let S = load() || fresh();
-S.ready = conversationComplete();
 function load() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
 
-let sample = null, dict = null, ctl = null, busy = false, lastErr = null, ready = false;
+let sample = null, dict = null, downloads = null, ctl = null, busy = false, lastErr = null, ready = false;
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const color = id => `var(--c-${id})`;
@@ -603,6 +624,11 @@ function makeSample() {
   return f;
 }
 sample = makeSample();
+downloads = { save: async ({ filename, data }) => {
+  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data]));
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+} };
 ready = true;
 setupMic();
 
@@ -615,7 +641,7 @@ async function submitReport() {
     const out = await r.json();
     S.reportId = out.id; S.reportUrl = out.url; S.emailed = out.emailed ?? S.emailed; S.submitError = false;
   } catch { S.submitError = true; }
-  save(); if ($('#report').classList.contains('on')) renderReport();
+  save(); refreshReport();
 }
 
 async function registerInterest(btn) {
@@ -624,7 +650,7 @@ async function registerInterest(btn) {
   try {
     const r = await fetch('/api/interest', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: S.reportId }) });
     if (!r.ok) throw 0;
-    S.interest = true; save(); renderReport();
+    S.interest = true; save(); refreshReport();
   } catch { btn.removeAttribute('aria-disabled'); btn.textContent = 'Try again'; }
 }
 document.addEventListener('click', e => {
@@ -644,8 +670,13 @@ async function loadReport(id) {
     const d = await r.json();
     S = { ...fresh(), user: { name: d.name }, report: d.report, flags: d.flags || [], market: d.market || 'XX', reportId: id, interest: d.interest, viewOnly: true };
     renderReport();
+    if (new URLSearchParams(location.search).get('print') === '1') {
+      const area = document.createElement('div'); area.id = 'printArea';
+      area.innerHTML = `<img class="plogo" src="/brand/logo-plum.svg" alt="The Good Span"><div class="rep">${reportHTML()}</div>`;
+      document.body.appendChild(area); document.body.classList.add('printing');
+    }
   } catch {
-    $('#repInner').innerHTML = '<div class="loading"><h2>We couldn’t find that Starting Position.</h2><p>Please check the link in your email, or contact us at hello@thegoodspan.com.</p></div>';
+    $('#repInner').innerHTML = '<div class="loading"><h2>We couldn’t find that report.</h2><p>Please check the link in your email, or contact us at hello@thegoodspan.com.</p></div>';
   }
 }
 
@@ -657,6 +688,7 @@ if (CFG.turnstileSiteKey) {
 const reportMatch = location.pathname.match(/^\/r\/([A-Za-z0-9]{16,64})\/?$/);
 if (reportMatch) loadReport(reportMatch[1]);
 else {
+  S.generating = false;
   if (S.user && S.turns[0]?.role === 'assistant') S.turns[0].content = welcomeFor(S.user.name);
   if (S.user) openChat(); else show('welcome');
   renderLog();
@@ -726,13 +758,27 @@ function renderLog(streamText) {
   });
   if (busy) out.push(`<div class="line bot last">${AV}${streamText ? `<div class="msg bot">${esc(streamText)}</div>` : '<div class="msg bot typing" aria-label="Typing"><i></i><i></i><i></i></div>'}</div>`);
   if (!busy && lastErr) out.push(`<div class="err"><p>${esc(lastErr)}</p><button class="btn" id="retry" type="button">Try again</button></div>`);
-  if (!busy && !lastErr && S.chips?.length) out.push(`<div class="chips">${S.chips.map(c => `<button type="button" data-chip="${esc(c)}">${esc(c)}</button>`).join('')}</div>`);
-  if (!busy && !lastErr && S.ready) out.push(`<div class="readyc"><p>Your personalised report is ready: where you are in each area, and recommendations chosen for you.</p><button class="btn primary" id="readyBtn" type="button">See my report</button></div>`);
+  if (!busy && !lastErr && S.chips?.length) out.push(S.chipsMulti && !S.screen
+    ? `<div class="chips multi" role="group" aria-label="Choose all that apply">${S.chips.map(c => `<button type="button" aria-pressed="false" data-mchip="${esc(c)}">${esc(c)}</button>`).join('')}<button type="button" class="chipsend" id="chipSend" disabled>Send selected →</button></div>`
+    : `<div class="chips">${S.chips.map(c => `<button type="button" data-chip="${esc(c)}">${esc(c)}</button>`).join('')}</div>`);
+  if (S.generating) out.push(`<div class="readyc gen"><p><strong>Writing your personalised Good Span report.</strong></p><p class="muted" id="genStatus">${esc(S.genStatus || '')}</p><div class="bar"><i></i></div><p class="fine muted">This takes a minute or two. It will appear here, and we’ll email it to you too.</p></div>`);
+  if (!S.generating && S.genError) out.push(`<div class="readyc"><p>${esc(S.genError)}</p><button class="btn primary" id="genRetry" type="button">Try again</button></div>`);
+  if (S.report && !S.viewOnly) out.push(`<div class="inrep"><div class="rep">${reportHTML()}</div></div>`);
+  if (!busy && !lastErr && S.ready && !S.report && !S.generating && !S.genError) out.push(`<div class="readyc"><p>Your conversation is complete. Your report will appear here, and we’ll email it to you too.</p><button class="btn primary" id="readyBtn" type="button">Create my report</button></div>`);
   $('#logInner').innerHTML = out.join('');
   $('#retry')?.addEventListener('click', () => { lastErr = null; call(); });
   $('#readyBtn')?.addEventListener('click', makeReport);
+  $('#genRetry')?.addEventListener('click', () => { S.genError = ''; makeReport(); });
   for (const c of document.querySelectorAll('[data-chip]')) c.addEventListener('click', () => send(c.dataset.chip));
-  const log = $('#log'); log.scrollTop = log.scrollHeight;
+  const mchips = [...document.querySelectorAll('[data-mchip]')];
+  for (const c of mchips) c.addEventListener('click', () => {
+    const on = c.getAttribute('aria-pressed') !== 'true', none = /^none of these$/i.test(c.dataset.mchip);
+    if (on) for (const o of mchips) if (o !== c && (none || /^none of these$/i.test(o.dataset.mchip))) o.setAttribute('aria-pressed', 'false');
+    c.setAttribute('aria-pressed', String(on));
+    $('#chipSend').disabled = !mchips.some(o => o.getAttribute('aria-pressed') === 'true');
+  });
+  $('#chipSend')?.addEventListener('click', () => send(mchips.filter(o => o.getAttribute('aria-pressed') === 'true').map(o => o.dataset.mchip).join(', ')));
+  const log = $('#log'); if (!(S.report && !S.viewOnly) || S.generating) log.scrollTop = log.scrollHeight;
   $('#send').disabled = busy || !!S.screen;
   const mc = $('#mic'); if (mc) mc.disabled = busy || !!S.screen || transcribing;
   const bx = $('#box'); bx.disabled = !!S.screen; bx.placeholder = S.screen ? 'Tap one of the answers above' : 'Message Pando…';
@@ -772,6 +818,7 @@ async function call() {
     if (e?.code !== 'cancelled') lastErr = errCopy(e?.code);
   } finally {
     busy = false; save(); renderProgress(); renderLog();
+    if (S.autoReport && !S.report) { S.autoReport = false; save(); setTimeout(makeReport, 2500); }
   }
 }
 
@@ -794,11 +841,12 @@ function answerScreen(ans) {
 }
 
 function applyMeta(m) {
-  if (!m || typeof m !== 'object') { S.chips = []; S.ready = conversationComplete(); return; }
+  if (!m || typeof m !== 'object') { S.chips = []; return; }
   for (const id of (Array.isArray(m.covered) ? m.covered : [])) if (TOPIC_IDS.has(id) && !S.covered.includes(id)) S.covered.push(id);
   for (const f of (Array.isArray(m.flags) ? m.flags : [])) if (typeof f === 'string' && /^[a-z_]{3,30}$/.test(f) && !S.flags.includes(f)) addFlag(f);
   if (AREAS.some(a => a.id === m.area)) S.area = m.area;
-  S.chips = Array.isArray(m.chips) ? m.chips.filter(c => typeof c === 'string' && c.trim()).slice(0, 7).map(c => c.slice(0, 80)) : [];
+  S.chips = Array.isArray(m.chips) ? m.chips.filter(c => typeof c === 'string' && c.trim()).slice(0, 9).map(c => c.slice(0, 80)) : [];
+  S.chipsMulti = m.multi === true && S.chips.length > 1;
   if (m.profile && typeof m.profile === 'object') {
     const p = m.profile, P = S.profile || (S.profile = {});
     for (const k of ['age', 'work']) if (PROFILE_OPTS[k].includes(p[k])) P[k] = p[k];
@@ -810,7 +858,7 @@ function applyMeta(m) {
     if (P.conditions === true) { P.hbp ??= false; P.diabetes ??= false; }
     if (Array.isArray(p.focus)) { const f = p.focus.filter(x => PILLARS.includes(x)).slice(0, 3); if (f.length) P.focus = f; }
   }
-  S.ready = conversationComplete();
+  if (m.ready === true && !S.ready) { S.ready = true; S.autoReport = true; }
 }
 
 function errCopy(code) {
@@ -832,20 +880,23 @@ function rules() {
   return `You are Pando, the assistant for The Good Span, a programme that helps adults build healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. Their first name is ${S.user?.name || 'not given'}. Use it sparingly: now and then at a natural moment and in the wrap-up, never in every message. You are having a friendly, private conversation in British English to understand this person’s current habits, so that a personalised report can be written afterwards. You are not a doctor and you never diagnose.
 
 HOW TO TALK
-- Warm, curious and plain. A thoughtful coach, not a form.
-- Each reply: a brief acknowledgement that shows you listened (pick up a specific detail, not generic praise), then usually ONE question. Two closely related questions are fine occasionally. Keep replies under about 70 words.
-- No bullet points, headings, bold, emojis or gushing (“Amazing!”). No advice yet: recommendations belong in the report. If asked directly, give one short pointer, then return to the conversation.
-- The report needs rough numbers. When an answer is vague, gently ask for an approximate number or frequency (“roughly how many nights a week?”). If they don’t know, accept it and move on.
-- Open each area broadly, about a typical week over the past month, before any specific question: e.g. “Talk me through a typical week in terms of movement and exercise”, “What does eating look like for you in a typical week?”, “How does sleep usually go for you across a typical week?”. Then follow up only on what their answer left out. One broad question often covers several topics.
-- Prefer open catch-alls to narrow checks where a list can’t name everything (e.g. “Is there anything else important to know about your sleep, such as snoring or breathing problems?”).
-- Notice things mentioned in passing and mark those topics covered. Never re-ask something already answered.
+- Warm, plain and efficient. A skilled coach running a focused intake, not a chatty friend.
+- Keep every reply short: usually one sentence of transition at most, then ONE question. Aim for under 35 words.
+- Acknowledgements are optional and brief (a few words), and only when they add something. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never use filler such as “Thanks for sharing”, “That’s really helpful”, “Got it”, “Great”, “I hear you”, “That makes sense”.
+- No bullet points, headings, bold or emojis. No advice: recommendations belong in the report. If asked directly, give one short pointer, then continue.
+- Never re-ask something already answered or mentioned in passing; mark it covered.
 - “Prefer not to say” or skipping is always fine: mark the topic covered and move on.
-- If they want to stop early, say gently that the report needs a picture of all six areas, then ask the next question. Do not wrap up and do not set ready.
+- If they want to stop early, check they’re sure, then wrap up and set ready to true.
 
-CONVERSATION STYLE
-This is an open, natural chat. Let the person lead: follow what they bring up and weave the remaining topics in through natural bridges rather than a fixed order (though finish one area before jumping far away). Ask open questions by default.
-Closed questions are the exception: use them only for a quick follow-up where you need a specific answer (e.g. after “I sleep badly”, asking roughly how many hours) or for a necessary screening prompt (e.g. warning symptoms, alcohol amount). Only then, put 2–6 short answer options in "chips" that match that question exactly, and include "Prefer not to say" for sensitive ones. Otherwise "chips" must be []. Most replies should have no chips.
-Ask for their first name only if it comes up naturally; never require it.
+HYBRID STYLE (open where it adds insight, closed where a quick answer will do)
+- Use OPEN questions for: what brought them here and why; their focus areas; the broad opener of each FOCUS area (“How does sleep usually go for you in a typical week?”); what gets in the way; what they enjoy; open catch-alls (“Anything else important about your sleep?”); and short follow-ups where their answer hints at something important.
+- Use CLOSED questions, with tappable answers in "chips", for anything factual or quantitative: age range, work pattern, hours of sleep, days of exercise, strength, sitting, portions, protein, processed food, salt, caffeine, phone time, contact with others, loneliness, smoking, checks, screening, vaccines, hearing, eye tests, naps, falls, chair and stairs, weekly time, pace. Offer 3–6 short options that cover the realistic range, plus “Prefer not to say” for sensitive ones. People can always type instead.
+- For “which of these apply” questions, set "multi" to true so they can tap several options and send them together (e.g. what gets in the way: Time, Energy, Motivation, Knowing where to start, Cost, Other people, Health or pain; practices they’d rather not do; what affects their sleep). Include “None of these” as an option.
+- In areas that are NOT a focus, skip the broad opener and go straight to the closed core questions, one after another, with a few words of transition at most.
+- In FOCUS areas, after the open opener, ask only the 2–3 follow-ups that will matter most for their recommendations. Don’t work through every topic on the list.
+- Ask “ONLY IF RELEVANT” topics only when something they said clearly calls for it.
+- Ask for their first name only if it comes up naturally; never require it.
+- Aim to finish in about 20–25 of your messages in total.
 
 FIXED-WORDING SCREENING QUESTIONS
 Three topics are asked by the app with fixed wording and answers, because they use validated tools: about.symptoms (screen "symptoms"), mind.mood (screen "mood", only when Mind is a focus area or they mention stress, worry or low mood) and prevention.alcohol (screen "alcohol"). When it’s the right moment for one, write only a short bridge sentence with no question (e.g. “Next, a quick health check I ask everyone of your age.”) and set "screen" in the data block. Never ask or paraphrase these yourself. The app tells you the result when it’s done.
@@ -868,7 +919,7 @@ PERSONALISATION
 Not everything is relevant to everyone. The list below is already tailored to what you know about this person, and it changes as you learn more. Ask what is on it, and nothing that isn’t.
 - Early on, after their first answer, find out the basics that shape everything else: their focus, age range and gender, work pattern, health conditions, and anything else important about their health. Do it lightly over two or three turns, explaining it helps you tailor things. Ask about gender, never sex, and never use the word sex with them.
 - Adapt how you ask, not just what you ask: wording, examples and emphasis should suit their age, life stage, work and what they’ve told you (e.g. retirement versus a busy job with young children, night shifts, a health condition).
-- Go deeper in their focus areas. Elsewhere keep to the essentials, but every pillar still needs enough for a real summary: what a typical week looks like, how often, and what is working or not. A passing mention is not enough to mark that pillar’s topics covered.
+- Go deeper in their focus areas. Elsewhere keep to the essentials.
 - Ask topics under “only if relevant” only when something they’ve said makes them matter (e.g. they mention poor sleep, so ask about caffeine and evening habits). Otherwise leave them out.
 - Respect what they’ve shared: if they mention something sensitive, don’t ask more than they offer.
 - In their focus areas, once you understand the habit, ask briefly what gets in the way if they haven’t said (knowing how, time or access, remembering, energy, confidence or motivation), and what has worked for them before. This shapes how the report helps them follow through.
@@ -876,19 +927,19 @@ Not everything is relevant to everyone. The list below is already tailored to wh
 WHAT YOU KNOW ABOUT THEM: ${known}
 
 TO ASK (id: what to find out)
-${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || (later.length ? '(nothing to ask until you know their age, gender or work pattern)' : '(nothing left: wrap up warmly and set ready to true)')}
+${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || '(nothing left: wrap up warmly and set ready to true)'}
 
 ONLY IF RELEVANT (from what they’ve said)
 ${opt.map(t => `${t.id}: ${t.desc}`).join('\n') || '(none)'}
 ${later.length ? `\nUNLOCKED ONCE YOU KNOW THEIR AGE, GENDER OR WORK PATTERN (don’t ask yet): ${later.map(t => t.id).join(', ')}\n` : ''}
 ALREADY COVERED (don’t ask again): ${S.covered.join(', ') || 'nothing yet'}
 
-The report is offered only when every topic under TO ASK is done and nothing is still listed as unlocked later. Do not set ready before that, even if they ask to finish. When that point is reached, give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
+When nothing is left under TO ASK (and anything relevant under ONLY IF RELEVANT is done), give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
 
 OUTPUT FORMAT, exactly:
 <your reply to the person>
 @@META
-{"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","chips":[],"flags":[],"screen":null,"ready":false}
+{"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","chips":[],"multi":false,"flags":[],"screen":null,"ready":false}
 "profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another gender) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
 Area ids: about, focus, nutrition, sleep, movement, mind, connection, prevention, life. Nothing after the JSON.`;
 }
@@ -993,7 +1044,7 @@ function planPrompt() {
 ${CONTEXT()}
 TOPICS NOT REACHED: ${plan().filter(t => t.tier === 'ask' && !S.covered.includes(t.id)).map(t => t.id).join(', ') || 'none'}
 
-STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). The conversation has covered every pillar, so "assessment" is 2–4 sentences on their current habits, using what they told you. Never say the conversation was too short, that you didn’t get to this area, or that there isn’t enough to go on.
+STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). "confidence" is "low" if the conversation said little. "assessment" is 2–4 sentences using what they actually said.
 Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects AUDIT-C, smoking and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
 
 STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change in one area of their life (e.g. their evenings, their working day, how they exercise), built from 2–5 complementary practices from the LIBRARY that work together. Rules:
@@ -1032,7 +1083,7 @@ Reply with ONLY this JSON:
 "focusWhy":"one paragraph on why these areas first",
 "plan":[{"pillar":"Sleep","theme":"2–4 word label, e.g. Evening wind-down","practiceIds":["SL36","SL48","SL32"],"barriers":"what gets in their way for this change, in their own terms","mechanisms":["Habit stacking","Friction reduction"]}],
 "keepDoing":"one paragraph on what they already do well and why it’s worth protecting",
-"notCovered":""}`;
+"notCovered":"one sentence on anything too thin to judge, or empty string"}`;
 }
 
 function writePrompt(P) {
@@ -1065,30 +1116,29 @@ Reply with ONLY this JSON:
 }
 
 async function makeReport() {
-  if (busy || !sample || !conversationComplete()) { S.ready = conversationComplete(); renderLog(); return; }
+  if (busy || !sample || S.report) return;
   if (dictOn) dict.stop().catch(() => {});
-  show('report');
-  $('#repInner').innerHTML = `<div class="loading"><h2>Writing your personalised report.</h2><p class="muted" id="ls">Reading your conversation…</p><div class="bar"><i></i></div><p class="fine muted">This takes a minute or two. We’re choosing from over 450 evidence-based practices and tailoring each one to you.</p><div class="row"><button class="btn" id="cancelRep" type="button">Back to the chat</button></div></div>`;
-  const status = t => { const el = $('#ls'); if (el) el.textContent = t; };
-  ctl = new AbortController();
-  $('#cancelRep').addEventListener('click', () => { ctl.abort(); openChat(); });
-  busy = true;
+  S.generating = true; S.genError = ''; S.genStatus = 'Reading your conversation…';
+  busy = true; ctl = new AbortController(); renderLog(); scrollToEnd();
+  const status = txt => { S.genStatus = txt; const el = $('#genStatus'); if (el) el.textContent = txt; };
   try {
     status('Looking at each area of your life…');
     const P = cleanPlan(await sample.json(planPrompt(), { modelTier: 'default', signal: ctl.signal, cache: false }));
     if (!P.plan.length) throw { code: 'invalid_json' };
     status('Tailoring each recommendation to you…');
     const W = await sample.json(writePrompt(P), { modelTier: 'default', signal: ctl.signal, cache: false });
-    S.report = merge(P, W); S.report.date = new Date().toISOString(); save();
-    renderReport();
+    S.report = merge(P, W); S.report.date = new Date().toISOString();
+    S.generating = false; save();
+    busy = false; renderLog();
+    const rep = $('#logInner .inrep'); if (rep) rep.scrollIntoView({ behavior: 'smooth', block: 'start' });
     submitReport();
   } catch (e) {
-    if (e?.code === 'cancelled') return;
-    $('#repInner').innerHTML = `<div class="loading"><h2>The report didn’t finish.</h2><p>${esc(e?.code === 'invalid_json' ? 'The report came back in an unexpected shape.' : errCopy(e?.code))}</p><div class="row"><button class="btn primary" id="again" type="button">Try again</button><button class="btn" id="back" type="button">Back to the chat</button></div></div>`;
-    $('#again').addEventListener('click', makeReport);
-    $('#back').addEventListener('click', openChat);
-  } finally { busy = false; }
+    S.generating = false;
+    if (e?.code !== 'cancelled') S.genError = e?.code === 'invalid_json' ? 'The report came back in an unexpected shape.' : errCopy(e?.code);
+    save();
+  } finally { busy = false; renderLog(); }
 }
+function scrollToEnd() { const log = $('#log'); if (log) log.scrollTop = log.scrollHeight; }
 
 function arr(v) { return Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()) : []; }
 function str(v) { return typeof v === 'string' ? v.trim() : Array.isArray(v) ? arr(v).join(' ') : ''; }
@@ -1130,11 +1180,6 @@ document.addEventListener('click', e => {
   b.setAttribute('aria-expanded', String(!open)); p.hidden = open;
 });
 function rich(x) { return esc(x).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'); }
-const PILLAR_LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
-const PILLAR_BARS = { focus: 1, improve: 2, well: 3 };
-function pillarState(R, p) {
-  return (R.focus || []).includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve';
-}
 function honeycomb(R) {
   const r = 96, gap = 10, d = Math.sqrt(3) * r + gap, cx = 260, cy = 272;
   const hex = (x, y, rr = r) => Array.from({ length: 6 }, (_, k) => { const a = Math.PI / 180 * (60 * k); return `${(x + rr * Math.cos(a)).toFixed(1)},${(y + rr * Math.sin(a)).toFixed(1)}`; }).join(' ');
@@ -1147,37 +1192,41 @@ function honeycomb(R) {
     Prevention: '<path d="M12 19s-7-4.3-7-9.2A3.8 3.8 0 0 1 12 7.6a3.8 3.8 0 0 1 7 2.2C19 14.7 12 19 12 19Z"/><path d="M7.5 12.2h2.6l1.2-2 1.6 3.6 1.1-1.6h2.5"/>',
   };
   const pos = { Nutrition: -90, Sleep: -30, Movement: 30, Mind: 90, Connection: 150, Prevention: 210 };
+  const state = p => ((R.focus || []).includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve');
+  const LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
   const cells = R.pillars.map(p => {
-    const a = pos[p.pillar] * Math.PI / 180, x = cx + d * Math.cos(a), y = cy + d * Math.sin(a), s = pillarState(R, p);
+    const a = pos[p.pillar] * Math.PI / 180, x = cx + d * Math.cos(a), y = cy + d * Math.sin(a), s = state(p);
     return `<g>
       <polygon points="${hex(x, y)}" fill="${s === 'focus' ? '#f5a4c2' : '#ffffff'}" stroke="#4d2831" stroke-width="2" ${s === 'improve' ? 'stroke-dasharray="7 5"' : ''} stroke-linejoin="round"/>
       <g transform="translate(${(x - 15).toFixed(1)} ${(y - 62).toFixed(1)}) scale(1.25)" fill="none" stroke="#4d2831" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[p.pillar]}</g>
       <text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="hc-name">${p.pillar.toUpperCase()}</text>
-      <text x="${x.toFixed(1)}" y="${(y + 30).toFixed(1)}" text-anchor="middle" class="hc-lv">${PILLAR_LABEL[s]}</text>
+      <text x="${x.toFixed(1)}" y="${(y + 30).toFixed(1)}" text-anchor="middle" class="hc-lv">${LABEL[s]}</text>
     </g>`;
   }).join('');
   const miniHex = (x, y, s) => `<polygon points="${hex(x, y, 11)}" fill="${s === 'focus' ? '#f5a4c2' : '#ffffff'}" stroke="#4d2831" stroke-width="1.5" ${s === 'improve' ? 'stroke-dasharray="3 2.5"' : ''}/>`;
-  const label = R.pillars.map(p => `${p.pillar}: ${PILLAR_LABEL[pillarState(R, p)]}`).join('; ');
+  const label = R.pillars.map(p => `${p.pillar}: ${LABEL[state(p)]}`).join('; ');
   return `<div class="honeypanel"><svg class="honey" viewBox="0 0 520 544" role="img" aria-label="${esc((S.user?.name || 'Your') + ' starting position. ' + label)}.">
     ${cells}
     <polygon points="${hex(cx, cy)}" fill="#4d2831"/>
     <text x="${cx}" y="${cy + 2}" text-anchor="middle" class="hc-you">${esc(S.user?.name || 'You')}</text>
     <text x="${cx}" y="${cy + 28}" text-anchor="middle" class="hc-start">STARTING POSITION</text>
   </svg>
-  <div class="hlegend">${['focus', 'improve', 'well'].map(s => `<span><svg viewBox="0 0 28 26" width="28" height="26" aria-hidden="true">${miniHex(14, 13, s)}</svg>${PILLAR_LABEL[s]}</span>`).join('')}</div></div>`;
+  <div class="hlegend">${['focus', 'improve', 'well'].map(s => `<span><svg viewBox="0 0 28 26" width="28" height="26" aria-hidden="true">${miniHex(14, 13, s)}</svg>${LABEL[s]}</span>`).join('')}</div></div>`;
 }
 function paras(s) { return String(s || '').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean).map(x => `<p>${rich(x)}</p>`).join(''); }
 
-function renderReport() {
+function reportHTML() {
   const R = S.report;
-  if (!R) { openChat(); return; }
+  const state = p => ((R.focus || []).includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve');
+  const LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
+  const BARS = { focus: 1, improve: 2, well: 3 };
   const date = R.date ? new Date(R.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-  $('#repInner').innerHTML = `
+  return `
   <section>
     <p class="ui muted">${esc(date)}</p>
     <h1>${S.user?.name ? esc(S.user.name) + ', here’s where you are.' : 'Here’s where you are.'}</h1>
     <div class="sum">${paras(R.summary)}</div>
-    ${S.viewOnly ? '' : S.reportUrl ? `<p class="fine savednote">${S.emailed ? `We’ve emailed your Starting Position to ${esc(S.user?.email || 'you')}. ` : ''}You can come back to it any time at <a href="${esc(S.reportUrl)}">${esc(S.reportUrl.replace(/^https?:\/\//, ''))}</a>.</p>` : S.submitError ? `<p class="fine savednote">We couldn’t save your Starting Position just now. <a href="#" id="retrySave">Try again</a>.</p>` : `<p class="fine savednote muted">Saving your Starting Position and sending it to your inbox…</p>`}
+    ${S.viewOnly ? '' : S.reportUrl ? `<p class="fine savednote">${S.emailed ? `We’ve emailed your Good Span report to ${esc(S.user?.email || 'you')}. ` : S.emailed === false ? `We couldn’t email it to ${esc(S.user?.email || 'you')} just now. <a href="#" id="resendEmail">Send it again</a>. ` : ''}You can come back to it any time at <a href="${esc(S.reportUrl)}">${esc(S.reportUrl.replace(/^https?:\/\//, ''))}</a>.</p>` : S.submitError ? `<p class="fine savednote">We couldn’t save your report just now. <a href="#" id="retrySave">Try again</a>, or use Download report below.</p>` : `<p class="fine savednote muted">Saving your report and sending it to your inbox…</p>`}
   </section>
 
   <section>
@@ -1185,11 +1234,11 @@ function renderReport() {
     ${honeycomb(R)}
     <div class="legend"><span>One bar: Focus now</span><span>Two bars: Worth improving</span><span>Three bars: Going well</span></div>
     <div class="pgrid">${R.pillars.map(p => {
-      const s = pillarState(R, p);
+      const s = state(p);
       return `
       <article class="pc ${s === 'focus' ? 'pri' : ''}" style="--ac:${color(areaOfPillar(p.pillar))}">
-        <div class="hd"><span>${p.pillar}</span><b class="lv">${PILLAR_LABEL[s]}</b></div>
-        <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= PILLAR_BARS[s] ? 'on' : ''}"></i>`).join('')}</div>
+        <div class="hd"><span>${p.pillar}</span><b class="lv">${LABEL[s]}</b></div>
+        <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= BARS[s] ? 'on' : ''}"></i>`).join('')}</div>
         <p>${rich(String(p.assessment || '').replace(/\s*based on only a little of the conversation\.?/ig, '').trim())}</p>
       </article>`;
     }).join('')}</div>
@@ -1215,7 +1264,7 @@ function renderReport() {
 
   ${R.week ? `<section><h2>How it could fit your week.</h2><div class="prose">${paras(R.week)}</div></section>` : ''}
   ${R.keepDoing ? `<section><h2>Keep doing.</h2><div class="prose">${paras(R.keepDoing)}</div></section>` : ''}
-  ${R.notCovered ? `<section><h2>What we didn’t get to.</h2><div class="prose">${paras(R.notCovered)}</div></section>` : ''}
+  ${R.notCovered ? `<section><h2>What we didn’t get to.</h2><div class="prose">${paras(R.notCovered)}<p class="fine muted">You can go back to the chat to fill this in, then create the report again.</p></div></section>` : ''}
   <section>
     <h2>Your next steps.</h2>
     <div class="steps">
@@ -1236,9 +1285,72 @@ function renderReport() {
 
   ${S.flags.includes('crisis') || S.flags.includes('crisis_keyword') ? `<section><div class="prose"><p>If you’re struggling or don’t feel safe, please talk to someone now. You can contact ${esc(lines().crisis)}, or call ${esc(lines().emergency)} in an emergency.</p></div></section>` : ''}
 
+  <div class="rdl noprint"><button class="btn primary dlrep" type="button">Download report</button></div>
+
   <p class="disc muted">This report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice.</p>`;
-  $('#retrySave')?.addEventListener('click', e => { e.preventDefault(); S.submitError = false; renderReport(); submitReport(); });
+}
+
+function renderReport() {
+  if (!S.report) { openChat(); return; }
+  $('#repInner').innerHTML = reportHTML();
   $('#report').scrollTop = 0;
+}
+function refreshReport() { if ($('#report').classList.contains('on')) renderReport(); else renderLog(); }
+
+// Report buttons work wherever the report is shown (in the chat or on its own page).
+document.addEventListener('click', async e => {
+  const t = e.target;
+  if (t.closest('.dlrep')) { e.preventDefault(); downloadReport(t.closest('.dlrep')); return; }
+  if (t.closest('#retrySave')) { e.preventDefault(); S.submitError = false; refreshReport(); submitReport(); return; }
+  if (t.closest('#resendEmail')) {
+    e.preventDefault(); t.textContent = 'Sending…';
+    try { const r = await fetch('/api/resend', { method: 'POST', headers: { 'content-type': 'application/json', 'X-Session': S.session || '' }, body: JSON.stringify({ id: S.reportId }) }); const d = await r.json(); S.emailed = !!d.emailed; }
+    catch { S.emailed = false; }
+    save(); refreshReport();
+  }
+});
+
+// Download: a PDF file made on the server from the report page (Cloudflare Browser Rendering).
+// If that isn't set up, or the report hasn't been saved yet, fall back to the browser's own print / save dialog.
+async function downloadReport(btn) {
+  if (!S.reportId) { printReport(); return; }
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing your report…';
+  try {
+    const r = await fetch(`/api/pdf?id=${encodeURIComponent(S.reportId)}`);
+    if (!r.ok) throw 0;
+    const blob = await r.blob();
+    const name = `Good-Span-report${S.user?.name ? '-' + S.user.name.replace(/[^A-Za-z0-9]+/g, '-') : ''}.pdf`;
+    await downloads.save({ filename: name, data: blob });
+  } catch { printReport(); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+
+function printReport() {
+  if (!S.report) return;
+  let area = $('#printArea');
+  if (!area) { area = document.createElement('div'); area.id = 'printArea'; document.body.appendChild(area); }
+  area.innerHTML = `<img class="plogo" src="/brand/logo-plum.svg" alt="The Good Span"><div class="rep">${reportHTML()}</div>`;
+  const title = document.title;
+  document.title = `The Good Span report${S.user?.name ? ' – ' + S.user.name : ''}`;
+  document.body.classList.add('printing');
+  const done = () => { document.body.classList.remove('printing'); document.title = title; window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(() => { window.print(); setTimeout(done, 1500); }, 300);
+}
+
+async function saveReport() {
+  const R = S.report; if (!R || !downloads) return;
+  const L = [`# The Good Span: ${S.user?.name ? S.user.name + '’s' : 'your'} report`, '', R.summary, '', '## Starting position', ''];
+  for (const p of R.pillars) L.push(`### ${p.pillar}: ${p.level || 'not enough to say'}${(R.focus || []).includes(p.pillar) ? ' (focus area)' : ''}`, '', p.assessment, '');
+  if (R.focusWhy) L.push(R.focusWhy, '');
+  L.push('## Our recommendations for you', '');
+  for (const r of R.recommendations) L.push(`### ${r.title}`, '', ...(r.why ? ['**Why this, for you.** ' + r.why, '', '**What to do.** ' + r.what, '', '**Making it stick.** ' + r.stick] : [r.body]), '', `_Practices: ${r.practiceIds.map(id => LIBMAP[id].f).join('; ')}._`, '');
+  if (R.week) L.push('## How it could fit your week', '', R.week, '');
+  if (R.keepDoing) L.push('## Keep doing', '', R.keepDoing, '');
+  if (R.notCovered) L.push('## What we didn’t get to', '', R.notCovered, '');
+  L.push('## Your next steps', '', '**Begin with one practice.** Choose the recommendation that feels most doable this week and start there. You don’t need to do everything at once.', '', '**Meet your longevity coach (from January 2027).** A longevity coach can talk through your Starting Position with you, refine your Good Span to fit your life and help you choose the membership that suits you. Register your interest and we’ll be in touch as soon as bookings open.', '');
+  L.push('_This report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice._');
+  try { await downloads.save({ filename: 'good-span-report.md', data: new Blob([L.join('\n')], { type: 'text/markdown' }) }); } catch {}
 }
 </script>
 </body>

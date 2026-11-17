@@ -12,7 +12,7 @@ export async function onRequestGet({ request, env }) {
   if (!row) return new Response('Not found', { status: 404 });
 
   const site = env.SITE_URL || new URL(request.url).origin;
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/browser-rendering/pdf`, {
+  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/browser-run/pdf`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${env.CF_BROWSER_TOKEN}`, 'content-type': 'application/json' },
     body: JSON.stringify({
