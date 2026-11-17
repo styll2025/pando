@@ -2,16 +2,21 @@
 // GET  /api/interest?id=...  (the email button)  -> records it and shows a thank-you page
 // POST /api/interest {id}    (the report button) -> records it and returns JSON
 import { json, html, validId } from '../../src/util.js';
-import { updateSubmission } from '../../src/db.js';
+import { addToBrevoList } from '../../src/email.js';
+import { getSubmission, updateSubmission } from '../../src/db.js';
 
 async function record(env, id) {
   if (!validId(id)) return false;
   try {
+    const row = await getSubmission(env, id, 'id,email,name');
+    if (!row) return false;
     // Keep the first time they registered; still counts as success if already registered.
-    const changed = await updateSubmission(env, id, { interest: true, interest_at: new Date().toISOString() }, '&interest=eq.false');
-    if (changed) return true;
-    const { getSubmission } = await import('../../src/db.js');
-    return !!(await getSubmission(env, id, 'id'));
+    await updateSubmission(env, id, { interest: true, interest_at: new Date().toISOString() }, '&interest=eq.false');
+    if (env.BREVO_LIST_ID) {
+      const listed = await addToBrevoList(env, { email: row.email, name: row.name, listId: env.BREVO_LIST_ID });
+      if (!listed.ok) console.error(listed.error);
+    }
+    return true;
   } catch (e) { console.error(e); return false; }
 }
 
@@ -29,7 +34,7 @@ export async function onRequestGet({ request, env }) {
 h1{font-weight:300;font-size:34px;line-height:1.15;margin:0 0 16px}p{font-size:17px;line-height:26px;margin:0 0 24px}
 a{display:inline-block;padding:14px 28px;border-radius:999px;background:#4d2831;color:#fff2ea;text-decoration:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
 img{width:180px;margin-bottom:28px}</style></head><body><div class="c"><img src="/brand/logo-plum.svg" alt="The Good Span">
-${ok ? `<h1>Thank you. You’re on the list.</h1><p>We’ll be in touch as soon as bookings with a longevity coach open in January 2027.</p><a href="/r/${id}">Back to your Starting Position</a>`
-     : `<h1>Something went wrong.</h1><p>We couldn’t find your Starting Position. Please use the link in your email again, or contact us.</p>`}
+${ok ? `<h1>Thank you. You’re on the list.</h1><p>We’ll be in touch as soon as bookings with a Good Span Longevity expert open in January 2027.</p><a href="/r/${id}">Back to your report</a>`
+     : `<h1>Something went wrong.</h1><p>We couldn’t find your report. Please use the link in your email again, or contact us.</p>`}
 </div></body></html>`, ok ? 200 : 404);
 }

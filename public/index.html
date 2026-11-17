@@ -286,7 +286,7 @@ strong{font-weight:500}
       <form class="wform" id="wform" novalidate>
         <div class="fld"><label for="fname">First name</label><input id="fname" autocomplete="given-name" maxlength="40" aria-describedby="fnameErr"><p class="ferr" id="fnameErr" hidden>Enter your first name.</p></div>
         <div class="fld"><label for="femail">Email</label><input id="femail" type="email" autocomplete="email" inputmode="email" maxlength="120" aria-describedby="femailErr"><p class="ferr" id="femailErr" hidden>Enter an email address like name@example.com.</p></div>
-                <label class="consent"><input type="checkbox" id="fconsent" aria-describedby="fconsentErr"><span>I agree that The Good Span may use my responses, including health information, to prepare my personalised report, and that a longevity coach may review my responses to discuss my results and recommendations with me.</span></label>
+                <label class="consent"><input type="checkbox" id="fconsent" aria-describedby="fconsentErr"><span>I agree that The Good Span may use my responses, including health information, to prepare my personalised report, and that a Good Span Longevity expert may review my responses to discuss my results and recommendations with me.</span></label>
         <p class="ferr" id="fconsentErr" hidden>Please confirm you agree so we can create your report.</p>
         <div id="turnstile"></div>
         <p class="ferr" id="fstartErr" hidden></p>
@@ -493,7 +493,7 @@ const TOPICS = [
   ['prevention.alcohol', 'prevention', 'H2: alcohol. FIXED-WORDING SCREEN: set "screen":"alcohol"', 'core', ALL],
   ['prevention.checks', 'prevention', 'H3: when they last had their blood pressure, cholesterol and blood sugar checked', 'core', or(ageBetween(40, 74), hasCondition)],
   ['prevention.screening', 'prevention', 'H4: whether they’re up to date with cervical screening and, from 50, breast screening', 'core', and(female, ageBetween(25, 71))],
-  ['prevention.bowel', 'prevention', 'H5: whether they’re up to date with bowel screening; for men, also whether they’ve ever discussed prostate checks with a doctor', 'core', ageAtLeast(50)],
+  ['prevention.bowel', 'prevention', 'H5: whether they’re up to date with bowel screening; for men, also whether they’ve ever looked into prostate checks', 'core', ageAtLeast(50)],
   ['prevention.bones', 'prevention', 'H6: whether they’ve broken a bone from a minor fall, been told they have thin bones, or taken steroid tablets for months at a time', 'core', or(and(female, or(ageAtLeast(50), postMeno)), and(male, ageAtLeast(70)))],
   ['prevention.bones', 'prevention', 'bone health, if they mention a fracture or thin bones', 'deep', ALL],
   ['prevention.hearing', 'prevention', 'H7: difficulty following conversations, and whether they use hearing aids', 'core', ageAtLeast(50)],
@@ -558,7 +558,7 @@ function screenResult(name, answers) {
   if (name === 'symptoms') {
     const yes = /^Yes/.test(answers[0] || '');
     if (yes) addFlag('exercise_symptoms', `A6: ${answers[0]}`);
-    return `Warning symptoms (A6): ${answers[0]}.${yes ? ' Acknowledge calmly and say one of our longevity coaches will be in touch to talk it through before they step up their activity, and can connect them with the right specialist if needed. Ask whether any of these are happening now, getting worse, or come on at rest; if so, follow the urgent symptoms rule.' : ''}`;
+    return `Warning symptoms (A6): ${answers[0]}.${yes ? ' Acknowledge calmly and say that this is worth talking through with a Good Span Longevity expert before they step up their activity, and that the expert can refer them to the right specialist if needed. Ask whether any of these are happening now, getting worse, or come on at rest; if so, follow the urgent symptoms rule.' : ''}`;
   }
   if (name === 'mood') {
     const sc = answers.map((a, i) => (a === 'Skip' ? null : idx(i)));
@@ -940,9 +940,9 @@ SAFETY (the person is in ${lines().country || 'an unknown country'}; use these n
 - Crisis: any mention of self-harm, suicide or not feeling safe. Pause the assessment. Respond with warmth and encourage them to talk to someone now: ${lines().crisis}, or ${lines().emergency} if they’re in immediate danger. Don’t carry on with questions unless they want to. Flag "crisis".
 - Harm from others: if they say someone is hurting, threatening or controlling them, respond with care; if they may be in danger, give ${lines().emergency}. Flag "harm_from_others".
 - Urgent symptoms: chest pain, severe breathlessness, fainting, or signs of a stroke happening now, getting worse, or coming on at rest. Tell them calmly to call ${lines().emergency} now, or ${lines().urgent} if it isn’t an emergency. Flag "urgent_symptoms".
-- Warning symptoms around activity (the app screens these): say one of our longevity coaches will be in touch to talk it through before they step up their activity, and can connect them with the right specialist. Never suggest a GP for this.
+- Warning symptoms around activity (the app screens these): say that this is worth talking through with a Good Span Longevity expert before they step up their activity, and that the expert can refer them to the right specialist if needed. Never suggest a GP or doctor for this.
 - Low mood, anxiety or worry on most days: respond with care. Don’t suggest a GP or any service, don’t give advice, and never say anything is being flagged. Flag "mood".
-- Loud snoring or pauses in breathing: mention it’s worth talking through with their longevity coach. Flag "sleep_apnoea_signs".
+- Loud snoring or pauses in breathing: mention it’s worth talking through with a Good Span Longevity expert. Flag "sleep_apnoea_signs".
 - Difficult relationship with food: don’t probe portions, timing or quantities beyond what they share. Flag "food_relationship".
 - Other flags when they apply (only from what they volunteer): "fall" (two or more falls in a year), "fall_injury" (a fall with a head injury or fracture), "weight_loss" (unintended weight loss), "alcohol_dependence" (drinking heavily every day, needing a drink in the morning, or shakes when not drinking), "high_bp_reading" (home readings around 180/110 or higher), "pain_injury", "smokes", "condition_inactive", "shift_work", "pregnant", "breastfeeding", "menopause", "nut_allergy".
 - Never say you are flagging anything, and never promise when a coach will call.
@@ -1071,7 +1071,7 @@ SAFETY FLAGS RAISED: ${S.flags.join(', ') || 'none'}
 SCREENING RESULTS: ${JSON.stringify(S.screens || {})} (PHQ-4 anxiety and depression 0–6, 3+ elevated; AUDIT-C 0–12, 5+ increasing risk)`;
 
 function planPrompt() {
-  return `You are planning a personal Good Span report. The Good Span helps adults build lasting healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. British English, warm, plain and confident, second person (“you”). Honest and specific, never shaming, never diagnostic. Write in flowing paragraphs, never bullet points. TONE: professional, warm and supportive, like an experienced longevity coach writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype.
+  return `You are planning a personal Good Span report. The Good Span helps adults build lasting healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. British English, warm, plain and confident, second person (“you”). Honest and specific, never shaming, never diagnostic. Write in flowing paragraphs, never bullet points. TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype.
 
 ${CONTEXT()}
 TOPICS NOT REACHED: ${plan().filter(t => t.tier === 'ask' && !S.covered.includes(t.id)).map(t => t.id).join(', ') || 'none'}
@@ -1082,21 +1082,21 @@ Use the screening results and segment answers in the assessment: Mind reflects t
 STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change in one area of their life (e.g. their evenings, their working day, how they exercise), built from 2–5 complementary practices from the LIBRARY that work together. Rules:
 - Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if AUDIT-C is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
 - Apply these SEGMENT RULES whenever they fit the person:
-  · Aged 65+, or fallen or worried about falling: include strength and balance in any movement recommendation; if two or more falls, or difficulty getting up from a chair, lead with balance and functional strength and include a falls review arranged through their longevity coach (PR33) and home hazards or night lighting where relevant.
-  · Women going through or after menopause: favour strength and weight-bearing exercise for bone health; for night sweats, a cool bedroom; if bone risk factors (past fracture, thin bones, long-term steroids), calcium and vitamin D from food, and a conversation with their longevity coach about whether a bone scan makes sense (PR44).
-  · Men 50+: if prostate checks haven’t been discussed, the health checks recommendation includes an informed conversation with a doctor about prostate checks, which their longevity coach can arrange (PR48).
+  · Aged 65+, or fallen or worried about falling: include strength and balance in any movement recommendation; if two or more falls, or difficulty getting up from a chair, lead with balance and functional strength and suggest taking their falls to their next conversation with a Good Span Longevity expert, who can arrange a falls review (PR33), and home hazards or night lighting where relevant.
+  · Women going through or after menopause: favour strength and weight-bearing exercise for bone health; for night sweats, a cool bedroom; if bone risk factors (past fracture, thin bones, long-term steroids), calcium and vitamin D from food, and taking the question of a bone scan to their Good Span Longevity expert (PR44).
+  · Men 50+: if prostate checks haven’t been discussed, the health checks recommendation suggests discussing prostate checks with their Good Span Longevity expert (PR48).
   · High blood pressure: weight salt, alcohol and aerobic activity; include home monitoring (MI4, PR40) if they don’t monitor; if on medication, adherence (PR30) only if they mention missing doses.
-  · Diabetes: no eating-window practices without agreement from the doctor who manages their diabetes (say so if relevant); blood sugar management (PR35); B12 (NU46) if they take metformin.
-  · Regular medicines or supplements (especially 50+): a supplement and medicine review with a pharmacist or their doctor (PR59, PR61; PR42 for 65+ on several medicines) can be part of the health checks recommendation.
-  · Unintended weight loss (65+): no restrictive eating practices; prioritise protein and enjoyable, regular meals, and say their longevity coach will talk it through with them.
-  · Low mood or anxiety (PHQ-4 3+ on either): choose gentle, low-effort practices, and avoid anything that could feel like pressure or self-criticism. Never mention mood screening, a GP or mental health services for this; their coach follows up separately.
+  · Diabetes: no eating-window practices until they’ve talked it through with their Good Span Longevity expert (say so if relevant); blood sugar management (PR35); B12 (NU46) if they take metformin.
+  · Regular medicines or supplements (especially 50+): a review of their medicines and supplements with their Good Span Longevity expert (PR59, PR61; PR42 for 65+ on several medicines) can be part of the health checks recommendation.
+  · Unintended weight loss (65+): no restrictive eating practices; prioritise protein and enjoyable, regular meals, and suggest taking it to their Good Span Longevity expert.
+  · Low mood or anxiety (PHQ-4 3+ on either): choose gentle, low-effort practices, and avoid anything that could feel like pressure or self-criticism. Never mention mood screening, a doctor or mental health services for this; their Longevity expert follows up separately.
   · Often lonely, or living alone at 65+: favour practices that bring people together (groups, shared meals, volunteering, Men’s Sheds for men who’d prefer doing to talking).
   · Retired or approaching retirement: purpose, structure and learning practices (PR52, MI74, MI76, CO58, PR11, PR12).
   · Shift workers: sleep and meal timing advice must fit their shifts, not a 9–5 day.
   · Under 40: noise protection (PR24, PR25) only if they mentioned loud music or headphones.
   · Phones and screens: calls, video calls and messages with family and friends are connection and should be treated as a strength. Only scrolling, social media, news or work out of hours count as screen time worth reducing, and only if they said it takes more time than they’d like or affects their sleep or mood.
-  · Flag exercise_symptoms or high_bp_reading: no step-ups in exercise intensity until a clinician has reviewed; keep to gentle activity they already do, and say their longevity coach will be in touch about clearance.
-  · Flag alcohol_dependence: only gradual reduction, never suggest stopping suddenly; say their longevity coach will talk it through with them.
+  · Flag exercise_symptoms or high_bp_reading: no step-ups in exercise intensity until a clinician has reviewed; keep to gentle activity they already do, and suggest talking it through with their Good Span Longevity expert before stepping up.
+  · Flag alcohol_dependence: only gradual reduction, never suggest stopping suddenly; suggest taking it to their Good Span Longevity expert, as stopping suddenly can be unsafe.
   · Flag food_relationship: no food tracking, calorie or portion targets, eating windows or restrictive practices.
 - Micro-personalise the choice: their age, gender, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, what they’d rather not do, the pace they asked for and the time they have (45–60 min → about 60 new minutes a week in total; 1–2 h → 120; 2–4 h → 240; 4 h+ → 300; unknown → 60).
 - Match levels to them: Learning practices for small steps or where they are starting out; Developing for “something in between”; Mastering only where they are already strong. Rows with no level are general practices: use them when they fit.
@@ -1110,10 +1110,9 @@ MECHANISMS (name | when | how | example | guardrail)
 ${mechForPrompt()}
 
 Reply with ONLY this JSON:
-{"summary":"one paragraph, 3–4 sentences, addressed as “you” (don’t start with their name): real strengths, the main opportunity and how the pieces connect",
+{"summary":"3 or 4 short paragraphs separated by a blank line (\\n\\n), each one or two sentences, addressed as “you” (don’t start with their name): first their real strengths, then the main opportunity, then how the pieces connect and where to start",
 "pillars":[{"pillar":"Nutrition","level":"Learning|Developing|Mastering","confidence":"high|medium|low","assessment":"…"}, …all 6 in order Nutrition, Sleep, Movement, Mind, Connection, Prevention],
 "focus":["Pillar"],
-"focusWhy":"one paragraph on why these areas first",
 "plan":[{"pillar":"Sleep","theme":"2–4 word label, e.g. Evening wind-down","practiceIds":["SL36","SL48","SL32"],"barriers":"what gets in their way for this change, in their own terms","mechanisms":["Habit stacking","Friction reduction"]}],
 "keepDoing":"one paragraph on what they already do well and why it’s worth protecting",
 "notCovered":"one sentence on anything too thin to judge, or empty string"}`;
@@ -1126,7 +1125,7 @@ Practices to combine:
 ${r.practiceIds.map(id => practiceFull(LIBMAP[id])).join('\n\n')}
 Mechanisms to apply:
 ${mechForPrompt(r.mechanisms)}`).join('\n\n---\n\n');
-  return `You are writing the recommendations in a personal Good Span report. British English, second person (“you”). TONE: professional, warm and supportive, like an experienced longevity coach writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype. Write in flowing paragraphs, never bullet points, numbered steps or headings inside the text. Never shame, never diagnose, never promise disease prevention or a longer life, never give a fixed habit timeline. Never quote screening scores, tool names or labels (e.g. PHQ-4, AUDIT-C, “higher-risk drinker”); say what matters in plain, kind words. Where a follow-up is needed (warning symptoms or blood pressure before harder exercise, falls, bone health, weight loss, sleep apnoea signs), say once, calmly, in the paragraph where it belongs, that their longevity coach will talk it through with them and can connect them with the right specialist. Never mention mood screening, or a GP or services for mood. Mention a GP only for things only their own doctor or national health service provides: national screening programmes, prescriptions, or existing care for a condition.
+  return `You are writing the recommendations in a personal Good Span report. British English, second person (“you”). TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype. Write in flowing paragraphs, never bullet points, numbered steps or headings inside the text. Never shame, never diagnose, never promise disease prevention or a longer life, never give a fixed habit timeline. Never quote screening scores, tool names or labels (e.g. PHQ-4, AUDIT-C, “higher-risk drinker”); say what matters in plain, kind words. Never refer people to a doctor, GP, pharmacist or specialist, even where a practice’s details mention one. Instead, say once, calmly, in the paragraph where it belongs, that this is worth taking to their next conversation with a Good Span Longevity expert to look at together, and that the expert can refer them to the right specialist if needed. This applies to warning symptoms or blood pressure before harder exercise, falls, bone health, weight loss, sleep apnoea signs, heavy drinking, medicines and supplements, diabetes, screening and check-ups. Never mention mood screening, or any service for mood.
 
 ${CONTEXT()}
 
@@ -1136,16 +1135,13 @@ For each recommendation below, write:
 - "title": a short, plain headline phrased as a recommendation, specific to them (e.g. “Rebuild your evenings so sleep can do its job”), not the practice name.
 - "why" (50–70 words): why this change is right for them now, naming what they told you and the reasoning a good clinician or coach would give. Don’t repeat their overall assessment.
 - "what" (80–120 words, one or two short paragraphs separated by a blank line): exactly what to do, combining the practices into one routine with doses, timings and how, adapted to their life (schedule, home, work, injuries, what they enjoy). Say where to start if their pace calls for an easier first step. If a caution applies to them, state it plainly here.
-- "stick" (50–80 words): how to make it happen, applying the mechanisms to the barriers they described in concrete detail (cue, what to prepare, what to do when it goes wrong). Don’t name the techniques.
+- "stick" (70–110 words): how to make it happen AND why that will work for them. Apply the mechanisms to the barriers they described in concrete detail (the cue, what to prepare, what to do when it slips), and for each one explain in plain words the behavioural reason it helps the habit stick, so the advice feels convincing rather than obvious. For example: linking a new habit to something they already do every day means the existing routine acts as the reminder, so it relies less on memory or willpower and becomes automatic sooner; deciding the when and where in advance removes a decision at the moment they’re tired, which is when good intentions usually fail; making the healthy option the easiest one within reach works because most daily choices are made on autopilot. Use everyday language rather than technical terms, and tie each reason to what they told you.
 Style for all three: short, plain sentences; say each thing once (never repeat a point between sections or from the assessment); cut filler and generic advice. Mark the 2–4 most important actions, doses or cautions in each recommendation in **double asterisks**, a few words each; don’t bold whole sentences.
-
-Then write "week": one short paragraph (60–90 words) showing how all the recommendations fit together across a normal week for them, with the key moments in **double asterisks**.
 
 ${recs}
 
 Reply with ONLY this JSON:
-{"recommendations":[{"title":"…","why":"…","what":"…","stick":"…"}, …one per recommendation, in the same order],
-"week":"…"}`;
+{"recommendations":[{"title":"…","why":"…","what":"…","stick":"…"}, …one per recommendation, in the same order]}`;
 }
 
 async function makeReport() {
@@ -1275,7 +1271,6 @@ function reportHTML() {
         <p>${rich(String(p.assessment || '').replace(/\s*based on only a little of the conversation\.?/ig, '').trim())}</p>
       </article>`;
     }).join('')}</div>
-    ${R.focusWhy ? `<div class="prose">${paras(R.focusWhy)}</div>` : ''}
   </section>
 
   <section>
@@ -1295,7 +1290,6 @@ function reportHTML() {
       </article>`).join('') || '<p>No recommendations were chosen. Try creating the report again.</p>'}</div>
   </section>
 
-  ${R.week ? `<section><h2>How it could fit your week.</h2><div class="prose">${paras(R.week)}</div></section>` : ''}
   ${R.keepDoing ? `<section><h2>Keep doing.</h2><div class="prose">${paras(R.keepDoing)}</div></section>` : ''}
   ${R.notCovered ? `<section><h2>What we didn’t get to.</h2><div class="prose">${paras(R.notCovered)}<p class="fine muted">You can go back to the chat to fill this in, then create the report again.</p></div></section>` : ''}
   <section>
@@ -1308,8 +1302,8 @@ function reportHTML() {
       </article>
       <article class="step step-coach">
         <p class="skick">02 · <span class="sbadge">January 2027</span></p>
-        <h3>Meet your longevity coach</h3>
-        <p>From January 2027, a longevity coach can talk through your Starting Position with you, refine your Good Span to fit your life and help you choose the membership that suits you. Register your interest and we’ll be in touch as soon as bookings open.</p>
+        <h3>Meet your Longevity expert</h3>
+        <p>From January 2027, a Good Span Longevity expert can talk through your Starting Position with you, refine your Good Span to fit your life and help you choose the membership that suits you. Register your interest and we’ll be in touch as soon as bookings open.</p>
         <p class="smeta">20-minute welcome call · Online</p>
         ${S.interest ? `<p class="sdone">Thank you. You’re on the list, and we’ll be in touch as soon as bookings open.</p>` : `<a class="sbtn" href="#register-interest">Register interest</a>`}
       </article>
@@ -1375,13 +1369,11 @@ async function saveReport() {
   const R = S.report; if (!R || !downloads) return;
   const L = [`# The Good Span: ${S.user?.name ? S.user.name + '’s' : 'your'} report`, '', R.summary, '', '## Starting position', ''];
   for (const p of R.pillars) L.push(`### ${p.pillar}: ${p.level || 'not enough to say'}${(R.focus || []).includes(p.pillar) ? ' (focus area)' : ''}`, '', p.assessment, '');
-  if (R.focusWhy) L.push(R.focusWhy, '');
   L.push('## Our recommendations for you', '');
   for (const r of R.recommendations) L.push(`### ${r.title}`, '', ...(r.why ? ['**Why this, for you.** ' + r.why, '', '**What to do.** ' + r.what, '', '**Making it stick.** ' + r.stick] : [r.body]), '', `_Practices: ${r.practiceIds.map(id => LIBMAP[id].f).join('; ')}._`, '');
-  if (R.week) L.push('## How it could fit your week', '', R.week, '');
   if (R.keepDoing) L.push('## Keep doing', '', R.keepDoing, '');
   if (R.notCovered) L.push('## What we didn’t get to', '', R.notCovered, '');
-  L.push('## Your next steps', '', '**Begin with one practice.** Choose the recommendation that feels most doable this week and start there. You don’t need to do everything at once.', '', '**Meet your longevity coach (from January 2027).** A longevity coach can talk through your Starting Position with you, refine your Good Span to fit your life and help you choose the membership that suits you. Register your interest and we’ll be in touch as soon as bookings open.', '');
+  L.push('## Your next steps', '', '**Begin with one practice.** Choose the recommendation that feels most doable this week and start there. You don’t need to do everything at once.', '', '**Meet your Longevity expert (from January 2027).** A Good Span Longevity expert can talk through your Starting Position with you, refine your Good Span to fit your life and help you choose the membership that suits you. Register your interest and we’ll be in touch as soon as bookings open.', '');
   L.push('_This report draws on your responses and the practices in The Good Span Longevity Library. It is intended to support your health and wellbeing, not replace professional medical advice._');
   try { await downloads.save({ filename: 'good-span-report.md', data: new Blob([L.join('\n')], { type: 'text/markdown' }) }); } catch {}
 }
