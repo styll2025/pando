@@ -274,7 +274,7 @@ strong{font-weight:500}
   <main class="view welcome" id="welcome">
     <div class="wl">
       <h1>Meet Pando.</h1>
-      <p class="lead">Pando is The Good Span’s assistant. In a relaxed 15–20-minute conversation, Pando explores six areas that contribute to healthy ageing and help reduce the risk of preventable health conditions: nutrition, sleep, movement, mind, social connection and preventive health. Your answers help build a picture of your habits and identify opportunities to support your long-term health. There are no right or wrong answers, and you can skip any question.</p>
+      <p class="lead">Pando is The Good Span’s assistant. In a relaxed 10–15-minute conversation, Pando explores six areas that contribute to healthy ageing and help reduce the risk of preventable health conditions: nutrition, sleep, movement, mind, social connection and preventive health. Your answers help build a picture of your habits and identify opportunities to support your long-term health. There are no right or wrong answers, and you can skip any question.</p>
       <div>
         <p class="ui muted" style="margin-bottom:12px">At the end, you’ll get</p>
         <ul class="gets">
@@ -422,21 +422,21 @@ const hotFlushes = P => {
 const fallFollowUp = P => (P.fallRisk !== undefined ? !!P.fallRisk : age(P) !== null && age(P) < 60 ? false : null);
 
 const TOPICS = [
-  ['about.basics', 'about', 'A2: age range and gender, so suggestions can be tailored. Ask about their gender, never their sex. Offer chips: Woman, Man, Another gender, Prefer not to say. Say briefly why it helps tailor suggestions. Skipping is fine', 'core', ALL],
+  ['about.basics', 'about', 'A2: their age range (fixed options: set "ask":"age") and gender (fixed options: set "ask":"gender"), as two short questions. Ask about gender, never sex. Say briefly that it helps tailor things', 'core', ALL],
   ['about.work', 'about', 'A3: working pattern (daytime, shifts including nights, irregular, not working or retired) and whether they look after anyone (children, a partner, a parent)', 'core', ALL],
-  ['about.health', 'about', 'A4: conditions a health professional has told them about, such as a heart condition, high blood pressure, diabetes, kidney or lung conditions', 'core', ALL],
+  ['about.health', 'about', 'A4 (OPEN): any health conditions a health professional has told them about. Give examples in the question (high blood pressure, diabetes, a heart or lung condition) and make clear anything else counts too', 'core', ALL],
   ['about.bp', 'about', 'A4a: whether they check their blood pressure at home, and whether they take medication for it', 'core', flagFrom('hbp')],
   ['about.diabetes', 'about', 'A4b: how their blood sugar control is at the moment, and whether they know their latest HbA1c', 'core', flagFrom('diabetes')],
-  ['about.medicines', 'about', 'A5: regular medicines and supplements they take', 'core', or(ageAtLeast(50), hasCondition)],
+  ['about.medicines', 'about', 'A5 (OPEN): regular medicines and supplements they take', 'core', or(ageAtLeast(50), hasCondition)],
   ['about.symptoms', 'about', 'A6: warning symptoms in the past three months. FIXED-WORDING SCREEN: set "screen":"symptoms"', 'core', or(ageAtLeast(40), hasCondition)],
-  ['about.menopause', 'about', 'A7: where they are with menopause: not started, going through it, or through it (offer these as chips with “Prefer not to say”). Ask gently', 'core', and(female, ageBetween(40, 60))],
-  ['about.other', 'about', 'A8: anything else about their health Pando should know before suggesting anything (medication, an injury, a life stage, anything they want considered). Let them choose what to share', 'core', ALL],
+  ['about.menopause', 'about', 'A7: where they are with menopause. Ask gently (fixed options: set "ask":"menopause")', 'core', and(female, ageBetween(40, 60))],
+  ['about.other', 'about', 'A8 (OPEN): anything else about their health Pando should know before suggesting anything (an injury, a life stage, anything they want considered). Let them choose what to share', 'core', ALL],
   ['focus.areas', 'focus', 'B1: which one or two areas they’d most like to improve, and why (often answered by the opening question)', 'core', ALL],
 
-  ['nutrition.plants', 'nutrition', 'C1 follow-up: vegetable and fruit portions a day (chips: None, 1–2, 3–4, 5 or more), whole grains, beans and plant variety', 'core', ALL],
+  ['nutrition.plants', 'nutrition', 'C1 follow-up (OPEN): how many vegetables and fruit they usually have, whole grains, beans and plant variety, only if their description of a typical week didn’t make it clear', 'core', ALL],
   ['nutrition.protein', 'nutrition', 'C1 follow-up: how many main meals include protein (matters more from 60)', 'core', ALL],
   ['nutrition.processed', 'nutrition', 'C1 follow-up: sugary drinks and processed foods, how often', 'core', ALL],
-  ['nutrition.considerations', 'nutrition', 'C2: allergies, intolerances, dietary choices, and how they feel about food generally', 'core', ALL],
+  ['nutrition.considerations', 'nutrition', 'C2 (OPEN): allergies, intolerances, dietary choices, and how they feel about food generally', 'core', ALL],
   ['nutrition.heart', 'nutrition', 'C3: salt added to food, and unsalted nuts', 'core', or(ageAtLeast(40), hasCondition)],
   ['nutrition.heart', 'nutrition', 'C3: salt added to food, and unsalted nuts', 'deep', ALL],
   ['nutrition.appetite', 'nutrition', 'C4: whether their appetite or weight has changed without trying in the last six months. Flag "weight_loss" if they’ve lost noticeably (around 5% or more)', 'core', ageAtLeast(65)],
@@ -446,10 +446,10 @@ const TOPICS = [
   ['nutrition.timing', 'nutrition', 'when they finish eating in the evening, and how long before bed', 'deep', ALL],
   ['nutrition.goal', 'nutrition', 'what they’d most like to improve about their nutrition', 'deep', ALL],
 
-  ['sleep.hours', 'sleep', 'D1 follow-up: hours of actual sleep (chips: Less than 5, 5–6, 6–7, 7–8, More than 8)', 'core', ALL],
+  ['sleep.hours', 'sleep', 'D1 follow-up: hours of actual sleep, if not clear from their answer (fixed options: set "ask":"sleep_hours")', 'core', ALL],
   ['sleep.problems', 'sleep', 'D1 follow-up: trouble getting to sleep, waking in the night, waking too early or waking unrefreshed', 'core', ALL],
   ['sleep.other', 'sleep', 'D2: open catch-all: anything else important about their sleep, such as snoring, breathing problems or restless legs. If snoring, check whether it is loud or with pauses in breathing', 'core', ALL],
-  ['sleep.menopause', 'sleep', 'D3: whether hot flushes or night sweats affect their sleep, and how often (chips: Most nights, A few nights a week, Rarely, Prefer not to say)', 'core', hotFlushes],
+  ['sleep.menopause', 'sleep', 'D3 (OPEN): whether hot flushes or night sweats affect their sleep, and how much. Ask sensitively; skipping is fine', 'core', hotFlushes],
   ['sleep.shift', 'sleep', 'D4: how their shifts affect when and how well they sleep, and recovery after night shifts', 'core', work('shift')],
   ['sleep.naps', 'sleep', 'D5: whether they nap, how often and for how long', 'core', ageAtLeast(60)],
   ['sleep.caffeine', 'sleep', 'time of their last caffeinated drink', 'deep', ALL],
@@ -457,12 +457,12 @@ const TOPICS = [
   ['sleep.disruptors', 'sleep', 'what affects their sleep: stress, work, screens, noise, temperature, caring, pain', 'deep', ALL],
   ['sleep.goal', 'sleep', 'what would be different if sleep went really well', 'deep', ALL],
 
-  ['movement.cardio', 'movement', 'E1 follow-up: days a week of exercise that makes them breathe harder, and roughly how long', 'core', ALL],
-  ['movement.strength', 'movement', 'E1 follow-up: strength work (weights, bodyweight, bands), days a week', 'core', ALL],
-  ['movement.sitting', 'movement', 'E1 follow-up: hours sitting a day, and whether they break it up', 'core', ALL],
-  ['movement.limits', 'movement', 'E2: pain, injury or a condition to take into account', 'core', ALL],
-  ['movement.function', 'movement', 'E3: how easy it is to get up from a chair without using their hands, or climb a flight of stairs (chips: Easy, Takes some effort, Difficult, I can’t at the moment)', 'core', ageAtLeast(65)],
-  ['movement.falls', 'movement', 'E4: how many falls in the past year (chips: None, One, Two or more) and whether they worry about falling. Set profile "fallRisk" true if they’ve fallen or worry, false otherwise. Flag "fall" for two or more falls', 'core', ageAtLeast(65)],
+  ['movement.cardio', 'movement', 'E1 follow-up: days a week of exercise that makes them breathe harder, if not clear from their answer (fixed options: set "ask":"exercise_days")', 'core', ALL],
+  ['movement.strength', 'movement', 'E1 follow-up: strength work such as weights, bodyweight exercises or bands, if not clear (fixed options: set "ask":"strength_days")', 'core', ALL],
+  ['movement.sitting', 'movement', 'E1 follow-up: hours sitting on a typical day (fixed options: set "ask":"sitting_hours"); whether they break it up can come up naturally', 'core', ALL],
+  ['movement.limits', 'movement', 'E2 (OPEN): anything that affects how they move, such as pain, an old injury or a health condition. Ask it openly, e.g. “What, if anything, affects how you move or exercise, like pain, an old injury or a health condition?”', 'core', ALL],
+  ['movement.function', 'movement', 'E3 (OPEN): how easy they find everyday things like getting up from a chair without using their hands, or climbing a flight of stairs', 'core', ageAtLeast(65)],
+  ['movement.falls', 'movement', 'E4 (OPEN): whether they’ve had any falls in the past year, and whether they worry about falling. Set profile "fallRisk" true if they’ve fallen or worry, false otherwise. Flag "fall" for two or more falls', 'core', ageAtLeast(65)],
   ['movement.falls', 'movement', 'E4: falls in the past year and worry about falling, only if they mention balance worries', 'deep', ageBetween(60, 64)],
   ['movement.home', 'movement', 'E4a: lighting on the way to the bathroom at night, rugs or stairs at home, and everyday footwear', 'core', fallFollowUp],
   ['movement.balance', 'movement', 'E5: stretching, balance work, yoga, Pilates or tai chi', 'core', ageAtLeast(60)],
@@ -471,17 +471,17 @@ const TOPICS = [
   ['movement.context', 'movement', 'what exercise they’ve enjoyed, where and with whom', 'deep', ALL],
   ['movement.goal', 'movement', 'what they’d most like to get out of moving more', 'deep', ALL],
 
-  ['mind.stress', 'mind', 'F1: how they’ve been feeling lately and how stressed or stretched things have been', 'core', ALL],
-  ['mind.screens', 'mind', 'F2: time on phone or social media a day outside work (chips: Less than 30 minutes, 30–60 minutes, 1–2 hours, More than 2 hours)', 'core', ageUnder(50)],
-  ['mind.screens', 'mind', 'time on phone or social media a day', 'deep', ageAtLeast(50)],
+  ['mind.stress', 'mind', 'F1 (OPEN): how they’ve been feeling day to day lately. Ask neutrally, without assuming stress or a problem, e.g. “How have you been feeling day to day lately?” Follow up on stress only if they raise it', 'core', ALL],
+  ['mind.screens', 'mind', 'F2 (OPEN): how their phone fits into their day outside work: what they mostly use it for and how they feel about the time they spend on it. Ask openly, e.g. “Outside work, what do you mostly use your phone for, and how do you feel about the time you spend on it?” Calls and messages with family and friends are connection, not a problem. Only if they mention scrolling or social media taking up a lot of time, ask roughly how long, openly', 'core', ageUnder(50)],
+  ['mind.screens', 'mind', 'how their phone fits into their day (open), and whether scrolling or social media takes more time than they’d like; calls and messages with people count as connection', 'deep', ageAtLeast(50)],
   ['mind.retirement', 'mind', 'F3: how they’re finding retirement, or whether they’re thinking about retiring', 'core', or(ageAtLeast(60), work('none'))],
   ['mind.mood', 'mind', 'two-week mood check. FIXED-WORDING SCREEN: set "screen":"mood". Only when Mind is a focus area or they mention stress, worry or low mood', 'deep', ALL],
   ['mind.practices', 'mind', 'what helps them switch off at the moment', 'deep', ALL],
   ['mind.nature', 'mind', 'time outdoors in green spaces or nature', 'deep', ALL],
   ['mind.goal', 'mind', 'what they’d most like to improve about how they feel day to day', 'deep', ALL],
 
-  ['connection.contact', 'connection', 'G1: in a typical month, how often they see or speak to friends and family outside their home', 'core', ALL],
-  ['connection.lonely', 'connection', 'G2: how often they feel lonely or lack companionship (chips: Hardly ever, Some of the time, Often, Prefer not to say)', 'core', ALL],
+  ['connection.contact', 'connection', 'G1 (OPEN): the people they feel closest to and how often they get to see or talk to them. Ask warmly, e.g. “Who are the people you feel closest to, and how often do you get to see or talk to them?”', 'core', ALL],
+  ['connection.lonely', 'connection', 'G2 (OPEN): how connected they feel day to day. Never ask about loneliness directly or use the word “lonely”. Ask gently, e.g. “And day to day, how connected do you feel to the people around you?” Their answer tells you whether they often feel alone; if they say they do, respond warmly and don’t probe further. Mark covered if G1 already made it clear', 'core', ALL],
   ['connection.living', 'connection', 'G3: who they live with', 'core', ageAtLeast(65)],
   ['connection.living', 'connection', 'who they live with', 'deep', ageUnder(65)],
   ['connection.community', 'connection', 'G4: groups, clubs, classes or volunteering', 'core', or(ageAtLeast(65), work('none'))],
@@ -489,7 +489,7 @@ const TOPICS = [
   ['connection.quality', 'connection', 'how close relationships feel, and whether there’s someone they can talk to about how they feel', 'deep', ALL],
   ['connection.goal', 'connection', 'what, if anything, they’d like from their connections', 'deep', ALL],
 
-  ['prevention.smoking', 'prevention', 'H1: whether they smoke or vape (chips: Never, I used to, Occasionally, Daily); if so, whether they’d like to stop', 'core', ALL],
+  ['prevention.smoking', 'prevention', 'H1: whether they smoke or vape (fixed options: set "ask":"smoking"); if they do, ask openly whether they’d like to stop', 'core', ALL],
   ['prevention.alcohol', 'prevention', 'H2: alcohol. FIXED-WORDING SCREEN: set "screen":"alcohol"', 'core', ALL],
   ['prevention.checks', 'prevention', 'H3: when they last had their blood pressure, cholesterol and blood sugar checked', 'core', or(ageBetween(40, 74), hasCondition)],
   ['prevention.screening', 'prevention', 'H4: whether they’re up to date with cervical screening and, from 50, breast screening', 'core', and(female, ageBetween(25, 71))],
@@ -506,17 +506,33 @@ const TOPICS = [
   ['prevention.sun', 'prevention', 'sun protection habits', 'deep', ALL],
   ['prevention.goal', 'prevention', 'what they’d most like to improve here', 'deep', ALL],
 
-  ['life.enjoy', 'life', 'I1: what they enjoy doing in their free time', 'core', ALL],
-  ['life.barriers', 'life', 'I2: what usually gets in the way of changing a habit, and what has helped before', 'core', ALL],
+  ['life.enjoy', 'life', 'I1 (OPEN): what they enjoy doing in their free time', 'core', ALL],
+  ['life.barriers', 'life', 'I2 (OPEN): what usually gets in the way of changing a habit, and what has helped before', 'core', ALL],
   ['life.support', 'life', 'I3: what help would make it easier: reminders, tracking, doing it with others, or keeping it private', 'core', ALL],
-  ['life.time', 'life', 'I4: realistic weekly time for new habits (chips: About 45–60 minutes, 1–2 hours, 2–4 hours, 4 hours or more, It varies)', 'core', ALL],
-  ['life.pace', 'life', 'I5: how big a change feels right (chips: Small, easy steps; Something in between; A bigger challenge)', 'core', ALL],
-  ['life.avoid', 'life', 'I6: anything they’d rather not do, such as tracking food, apps, fasting, meditation, journalling or early mornings', 'core', ALL],
+  ['life.time', 'life', 'I4: realistic weekly time for new habits; things they already do don’t count (fixed options: set "ask":"weekly_time")', 'core', ALL],
+  ['life.pace', 'life', 'I5: how big a change feels right to start with (fixed options: set "ask":"pace")', 'core', ALL],
+  ['life.avoid', 'life', 'I6: anything they’d rather not do (fixed options, choose any: set "ask":"avoid")', 'core', ALL],
 ];
 const TOPIC_IDS = new Set(TOPICS.map(t => t[0]));
 const PROFILE_OPTS = { age: Object.keys(AGE_MIN), work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'during', 'after', 'unknown'] };
 const GENDER_TO_SEX = { woman: 'female', female: 'female', man: 'male', male: 'male', other: 'other', unknown: 'unknown' };
 const GENDER_LABEL = { female: 'woman', male: 'man', other: 'another gender', unknown: 'prefer not to say' };
+
+// The only questions with answer buttons. Pando writes the question in its own words and names the set;
+// the page attaches these options. Everything else is an open question.
+const ANSWER_SETS = {
+  age:           { opts: ['18–29', '30–39', '40–49', '50–59', '60–69', '70 or over'] },
+  gender:        { opts: ['Woman', 'Man', 'I describe myself another way', 'Prefer not to say'] },
+  menopause:     { opts: ['Not started', 'Going through it', 'Through it', 'Not sure', 'Prefer not to say'] },
+  sleep_hours:   { opts: ['Less than 5 hours', '5–6 hours', '6–7 hours', '7–8 hours', 'More than 8 hours'] },
+  exercise_days: { opts: ['None at the moment', '1 day', '2 days', '3–4 days', '5 or more days'] },
+  strength_days: { opts: ['None at the moment', 'Once a week', 'Twice a week', '3 or more times a week'] },
+  sitting_hours: { opts: ['Less than 4 hours', '4–6 hours', '6–8 hours', '8–10 hours', 'More than 10 hours'] },
+  smoking:       { opts: ['I’ve never smoked or vaped', 'I used to', 'Occasionally', 'Every day'] },
+  weekly_time:   { opts: ['About 45–60 minutes', '1–2 hours', '2–4 hours', 'More than 4 hours', 'It varies'] },
+  pace:          { opts: ['Small, easy steps', 'Something in between', 'A bigger challenge'] },
+  avoid:         { multi: true, opts: ['Tracking food', 'Apps or devices', 'Fasting or eating windows', 'Meditation', 'Journalling', 'Early mornings', 'Something else', 'None of these'] },
+};
 
 // Screening questions with fixed wording and answers (validated tools), asked by the app, not paraphrased.
 const SCREENS = {
@@ -578,7 +594,7 @@ function plan() {
 const FLAGS = { exercise_symptoms: 'Possible warning symptoms with exercise', sleep_apnoea_signs: 'Loud snoring or breathing pauses', mood: 'Low mood or anxiety on many days', crisis: 'Said they may be at risk', food_relationship: 'Difficult relationship with food', pregnant: 'Pregnant', breastfeeding: 'Breastfeeding', shift_work: 'Shift or night work', condition_inactive: 'Heart, metabolic or kidney condition', pain_injury: 'Pain, injury or joint limitation', fall: 'Fall in the past 12 months', nut_allergy: 'Nut allergy', higher_risk_drinking: 'Higher-risk drinking', smokes: 'Smokes or vapes' };
 
 const KEY = 'tgs-chat-v8';
-const welcomeFor = name => `Hi ${name}, I’m Pando.\n\nI’d like to help you build a clearer picture of how you’re doing across the areas of life that contribute to long-term health and wellbeing: nutrition, sleep, movement, mind, connection and prevention.\n\nWe’ll spend around 15 minutes talking about your everyday habits, what matters to you, what’s working well and where you might want to make a change. I’ll use what you share to create a personalised Good Span report, with practical suggestions that take your circumstances, preferences and goals into account.\n\nThere are no right or wrong answers, and this isn’t a test. The aim is to understand what matters to you and help you find a realistic place to start.\n\nTo begin, what’s prompted you to explore your health and wellbeing at this point in your life?`;
+const welcomeFor = name => `Hi ${name}, I’m Pando.\n\nI’d like to help you build a clearer picture of how you’re doing across the areas of life that contribute to long-term health and wellbeing: nutrition, sleep, movement, mind, connection and prevention.\n\nWe’ll spend around 10 to 15 minutes talking about your everyday habits, what matters to you, what’s working well and where you might want to make a change. I’ll use what you share to create a personalised Good Span report, with practical suggestions that take your circumstances, preferences and goals into account.\n\nThere are no right or wrong answers, and this isn’t a test. The aim is to understand what matters to you and help you find a realistic place to start.\n\nTo begin, what’s prompted you to explore your health and wellbeing at this point in your life?`;
 const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
 let S = load() || fresh();
 function load() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
@@ -802,17 +818,18 @@ async function call() {
   const input = [{ role: 'user', content: rules() + (S.riskNotice ? '\n\nSAFETY NOTICE: the person’s latest message may indicate they are at risk. Follow the crisis rule now.' : '') }, ...recent.map(t => ({ role: t.role, content: t.content }))];
   S.riskNotice = false;
   try {
-    const { text } = await sample(input, {
+    const res = await sample(input, {
       cache: false, modelTier: 'quick', signal: ctl.signal,
-      onText: ({ text }) => renderLog(splitRaw(text).text),
+      onText: ({ text }) => renderLog(splitRaw(trimFiller(text)).text),
     });
+    const text = trimFiller(res.text);
     const { text: said, meta } = splitRaw(text);
     applyMeta(meta);
     const sc = meta && SCREENS[meta.screen] && !S.covered.includes(SCREENS[meta.screen].topic) && plan().some(t => t.id === SCREENS[meta.screen].topic) ? meta.screen : null;
     if (sc) {
       S.screen = { name: sc, i: 0, answers: [] };
       S.chips = SCREENS[sc].items[0].opts.slice();
-      S.turns.push({ role: 'assistant', content: `${said}\n\n${screenText(sc, 0)}\n@@META\n${JSON.stringify({ ...meta, chips: [] })}` });
+      S.turns.push({ role: 'assistant', content: `${said}\n\n${screenText(sc, 0)}\n@@META\n${JSON.stringify({ ...meta, ask: null })}` });
     } else S.turns.push({ role: 'assistant', content: text });
   } catch (e) {
     if (e?.code !== 'cancelled') lastErr = errCopy(e?.code);
@@ -840,13 +857,21 @@ function answerScreen(ans) {
   save(); call();
 }
 
+// Removes an opening filler sentence such as “Lovely, that gives us a clear direction.” before the question.
+function trimFiller(raw) {
+  const re = /^\s*(?:(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b[^.!?\n]*[.!?]\s*)+/i;
+  const out = raw.replace(re, '');
+  return out.split('@@META')[0].trim().length > 8 ? out : raw;
+}
+
 function applyMeta(m) {
   if (!m || typeof m !== 'object') { S.chips = []; return; }
   for (const id of (Array.isArray(m.covered) ? m.covered : [])) if (TOPIC_IDS.has(id) && !S.covered.includes(id)) S.covered.push(id);
   for (const f of (Array.isArray(m.flags) ? m.flags : [])) if (typeof f === 'string' && /^[a-z_]{3,30}$/.test(f) && !S.flags.includes(f)) addFlag(f);
   if (AREAS.some(a => a.id === m.area)) S.area = m.area;
-  S.chips = Array.isArray(m.chips) ? m.chips.filter(c => typeof c === 'string' && c.trim()).slice(0, 9).map(c => c.slice(0, 80)) : [];
-  S.chipsMulti = m.multi === true && S.chips.length > 1;
+  const set = ANSWER_SETS[m.ask];
+  S.chips = set ? set.opts.slice() : [];
+  S.chipsMulti = !!set?.multi;
   if (m.profile && typeof m.profile === 'object') {
     const p = m.profile, P = S.profile || (S.profile = {});
     for (const k of ['age', 'work']) if (PROFILE_OPTS[k].includes(p[k])) P[k] = p[k];
@@ -882,21 +907,28 @@ function rules() {
 HOW TO TALK
 - Warm, plain and efficient. A skilled coach running a focused intake, not a chatty friend.
 - Keep every reply short: usually one sentence of transition at most, then ONE question. Aim for under 35 words.
-- Acknowledgements are optional and brief (a few words), and only when they add something. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never use filler such as “Thanks for sharing”, “That’s really helpful”, “Got it”, “Great”, “I hear you”, “That makes sense”.
+- Acknowledgements are optional and brief (a few words), and only when they add something, for example a short, warm line when someone shares something difficult. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never start a reply with “Thanks”, “Thank you”, “Great”, “Got it”, “Perfect”, “Lovely”, “I hear you”, “That makes sense” or similar filler.
 - No bullet points, headings, bold or emojis. No advice: recommendations belong in the report. If asked directly, give one short pointer, then continue.
 - Never re-ask something already answered or mentioned in passing; mark it covered.
 - “Prefer not to say” or skipping is always fine: mark the topic covered and move on.
 - If they want to stop early, check they’re sure, then wrap up and set ready to true.
 
-HYBRID STYLE (open where it adds insight, closed where a quick answer will do)
-- Use OPEN questions for: what brought them here and why; their focus areas; the broad opener of each FOCUS area (“How does sleep usually go for you in a typical week?”); what gets in the way; what they enjoy; open catch-alls (“Anything else important about your sleep?”); and short follow-ups where their answer hints at something important.
-- Use CLOSED questions, with tappable answers in "chips", for anything factual or quantitative: age range, work pattern, hours of sleep, days of exercise, strength, sitting, portions, protein, processed food, salt, caffeine, phone time, contact with others, loneliness, smoking, checks, screening, vaccines, hearing, eye tests, naps, falls, chair and stairs, weekly time, pace. Offer 3–6 short options that cover the realistic range, plus “Prefer not to say” for sensitive ones. People can always type instead.
-- For “which of these apply” questions, set "multi" to true so they can tap several options and send them together (e.g. what gets in the way: Time, Energy, Motivation, Knowing where to start, Cost, Other people, Health or pain; practices they’d rather not do; what affects their sleep). Include “None of these” as an option.
+OPEN BY DEFAULT
+- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”.
+- Answer buttons exist for only a few topics, and the app supplies them, not you. When your question is one of these, write a short, direct question that fits the options and set "ask" to its name. Never list options in your message.
+  · "age": their age range · "gender": their gender, never the word sex · "menopause": menopause stage (women 40–60)
+  · "sleep_hours": hours of sleep · "exercise_days": days a week of exercise that makes them breathe harder · "strength_days": strength sessions a week
+  · "sitting_hours": hours sitting on a typical day · "smoking": whether they smoke or vape
+  · "weekly_time": time a week for new habits · "pace": how big a change feels right · "avoid": types of practice they’d rather not do (choose any)
+- For every other question, set "ask" to null. People can always type instead of tapping.
+- If someone picks “Something else”, or an answer hints at something that matters, ask one short open follow-up.
+- Ask neutral questions that don’t assume an answer: “How have you been feeling lately?”, not “How stressed have you been?”; “How does sleep usually go for you?”, not “What’s stopping you sleeping well?”.
+- Don’t narrate the conversation. Never comment on progress or what’s been covered (“Movement’s covered well”, “That gives us a clear direction”, “Next, let’s look at…”). When moving to a new area, go straight to the question; at most a few words of transition such as “And day to day,” or “On sleep,”.
 - In areas that are NOT a focus, skip the broad opener and go straight to the closed core questions, one after another, with a few words of transition at most.
 - In FOCUS areas, after the open opener, ask only the 2–3 follow-ups that will matter most for their recommendations. Don’t work through every topic on the list.
 - Ask “ONLY IF RELEVANT” topics only when something they said clearly calls for it.
 - Ask for their first name only if it comes up naturally; never require it.
-- Aim to finish in about 20–25 of your messages in total.
+- Aim to finish in about 20 of your messages in total, so the conversation takes 10–15 minutes. Prioritise what matters most for their recommendations; it’s better to leave a minor topic unasked than to run long.
 
 FIXED-WORDING SCREENING QUESTIONS
 Three topics are asked by the app with fixed wording and answers, because they use validated tools: about.symptoms (screen "symptoms"), mind.mood (screen "mood", only when Mind is a focus area or they mention stress, worry or low mood) and prevention.alcohol (screen "alcohol"). When it’s the right moment for one, write only a short bridge sentence with no question (e.g. “Next, a quick health check I ask everyone of your age.”) and set "screen" in the data block. Never ask or paraphrase these yourself. The app tells you the result when it’s done.
@@ -939,8 +971,8 @@ When nothing is left under TO ASK (and anything relevant under ONLY IF RELEVANT 
 OUTPUT FORMAT, exactly:
 <your reply to the person>
 @@META
-{"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","chips":[],"multi":false,"flags":[],"screen":null,"ready":false}
-"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another gender) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
+{"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","ask":null,"flags":[],"screen":null,"ready":false}
+"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another way) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
 Area ids: about, focus, nutrition, sleep, movement, mind, connection, prevention, life. Nothing after the JSON.`;
 }
 
@@ -1062,6 +1094,7 @@ STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change 
   · Retired or approaching retirement: purpose, structure and learning practices (PR52, MI74, MI76, CO58, PR11, PR12).
   · Shift workers: sleep and meal timing advice must fit their shifts, not a 9–5 day.
   · Under 40: noise protection (PR24, PR25) only if they mentioned loud music or headphones.
+  · Phones and screens: calls, video calls and messages with family and friends are connection and should be treated as a strength. Only scrolling, social media, news or work out of hours count as screen time worth reducing, and only if they said it takes more time than they’d like or affects their sleep or mood.
   · Flag exercise_symptoms or high_bp_reading: no step-ups in exercise intensity until a clinician has reviewed; keep to gentle activity they already do, and say their longevity coach will be in touch about clearance.
   · Flag alcohol_dependence: only gradual reduction, never suggest stopping suddenly; say their longevity coach will talk it through with them.
   · Flag food_relationship: no food tracking, calorie or portion targets, eating windows or restrictive practices.
