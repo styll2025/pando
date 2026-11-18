@@ -424,7 +424,7 @@ const fallFollowUp = P => (P.fallRisk !== undefined ? !!P.fallRisk : age(P) !== 
 const TOPICS = [
   ['about.basics', 'about', 'A2: their age range (fixed options: set "ask":"age") and gender (fixed options: set "ask":"gender"), as two short questions. Ask about gender, never sex. Say briefly that it helps tailor things', 'core', ALL],
   ['about.work', 'about', 'A3: working pattern (daytime, shifts including nights, irregular, not working or retired) and whether they look after anyone (children, a partner, a parent)', 'core', ALL],
-  ['about.health', 'about', 'A4 (OPEN): any health conditions a health professional has told them about. Give examples in the question (high blood pressure, diabetes, a heart or lung condition) and make clear anything else counts too', 'core', ALL],
+  ['about.health', 'about', 'A4 (OPEN): ask this exact question, with no examples and no rephrasing: “Has a doctor, nurse, or other healthcare professional ever formally told you that you have a health condition?”', 'core', ALL],
   ['about.bp', 'about', 'A4a: whether they check their blood pressure at home, and whether they take medication for it', 'core', flagFrom('hbp')],
   ['about.diabetes', 'about', 'A4b: how their blood sugar control is at the moment, and whether they know their latest HbA1c', 'core', flagFrom('diabetes')],
   ['about.medicines', 'about', 'A5 (OPEN): regular medicines and supplements they take', 'core', or(ageAtLeast(50), hasCondition)],
@@ -915,7 +915,7 @@ HOW TO TALK
 - If they want to stop early, check they’re sure, then wrap up and set ready to true.
 
 OPEN BY DEFAULT
-- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”.
+- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”. The health-conditions question is the exception: ask it in the exact words given, even though it starts with “Has”.
 - Answer buttons exist for only a few topics, and the app supplies them, not you. When your question is one of these, write a short, direct question that fits the options and set "ask" to its name. Never list options in your message.
   · "age": their age range · "gender": their gender, never the word sex · "menopause": menopause stage (women 40–60)
   · "sleep_hours": hours of sleep · "exercise_days": days a week of exercise that makes them breathe harder · "strength_days": strength sessions a week
