@@ -546,8 +546,7 @@ const SCREENS = {
     { q: 'Feeling down, depressed or hopeless', opts: ['Not at all', 'Several days', 'More than half the days', 'Nearly every day', 'Skip'] } ] },
   alcohol: { topic: 'prevention.alcohol', items: [
     { q: 'How often do you have a drink containing alcohol?', opts: ['Never', 'Monthly or less', '2–4 times a month', '2–3 times a week', '4 or more times a week'], stopIf: 'Never' },
-    { q: 'How many units of alcohol do you drink on a typical day when you’re drinking? As a guide, a pint of beer is about 2–3 units, a medium glass of wine about 2, and a single spirit 1.', opts: ['1–2', '3–4', '5–6', '7–9', '10 or more'] },
-    { q: P => `How often have you had ${P.sex === 'female' ? '6 or more units' : P.sex === 'male' ? '8 or more units' : '6 or more units (women) or 8 or more (men)'} on a single occasion in the last year?`, opts: ['Never', 'Less than monthly', 'Monthly', 'Weekly', 'Daily or almost daily'] } ] },
+    { q: 'How many units of alcohol do you drink on a typical day when you’re drinking? As a guide, a pint of beer is about 2–3 units, a medium glass of wine about 2, and a single spirit 1.', opts: ['1–2', '3–4', '5–6', '7–9', '10 or more'] } ] },
 };
 function screenText(name, i) {
   const s = SCREENS[name], it = s.items[i];
@@ -572,8 +571,8 @@ function screenResult(name, answers) {
   if (name === 'alcohol') {
     const score = answers.reduce((s, a, i) => s + Math.max(0, idx(i)), 0);
     S.screens.alcohol = { score };
-    if (score >= 5) addFlag('higher_risk_drinking', `AUDIT-C ${score}/12`);
-    return `AUDIT-C alcohol: score ${score}/12 (5 or more indicates increasing risk). Answers: ${answers.join('; ')}.`;
+    if (score >= 5) addFlag('higher_risk_drinking', `alcohol frequency and amount ${score}/8`);
+    return `Alcohol, how often and how much on a typical day: score ${score}/8 (5 or more is worth a recommendation). There is no question about drinking a lot on one occasion. Answers: ${answers.join('; ')}.`;
   }
   return '';
 }
@@ -1076,7 +1075,7 @@ ${transcriptText()}
 WHO THEY ARE: ${JSON.stringify(S.profile || {})}
 FIRST NAME: ${S.user?.name || 'not given'}
 SAFETY FLAGS RAISED: ${S.flags.join(', ') || 'none'}
-SCREENING RESULTS: ${JSON.stringify(S.screens || {})} (PHQ-4 anxiety and depression 0–6, 3+ elevated; AUDIT-C 0–12, 5+ increasing risk)`;
+SCREENING RESULTS: ${JSON.stringify(S.screens || {})} (PHQ-4 anxiety and depression 0–6, 3+ elevated; alcohol frequency and typical amount 0–8, 5+ worth a recommendation. No question was asked about drinking a lot on one occasion.)`;
 
 function planPrompt() {
   return `You are planning a personal Good Span report. The Good Span helps adults build lasting healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. British English, warm, plain and confident, second person (“you”). Honest and specific, never shaming, never diagnostic. Write in flowing paragraphs, never bullet points. TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype.
@@ -1085,10 +1084,10 @@ ${CONTEXT()}
 TOPICS NOT REACHED: ${plan().filter(t => t.tier === 'ask' && !S.covered.includes(t.id)).map(t => t.id).join(', ') || 'none'}
 
 STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). "confidence" is "low" if the conversation said little. "assessment" is 2–4 sentences using what they actually said.
-Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects AUDIT-C, smoking and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
+Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects how often they drink and how much on a typical day, smoking, and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
 
 STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change in one area of their life (e.g. their evenings, their working day, how they exercise), built from 2–5 complementary practices from the LIBRARY that work together. Rules:
-- Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if AUDIT-C is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
+- Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if their frequency-and-amount score is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
 - Apply these SEGMENT RULES whenever they fit the person:
   · Aged 65+, or fallen or worried about falling: include strength and balance in any movement recommendation; if two or more falls, or difficulty getting up from a chair, lead with balance and functional strength and suggest taking their falls to their next conversation with a Good Span Longevity expert, who can arrange a falls review (PR33), and home hazards or night lighting where relevant.
   · Women in perimenopause, menopause or postmenopause (menopause stage “peri”, “menopause” or “post”, hot flushes or night sweats, or the menopause flag): this is a priority segment.
