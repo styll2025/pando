@@ -1069,13 +1069,15 @@ SAFETY FLAGS RAISED: ${S.flags.join(', ') || 'none'}
 SCREENING RESULTS: ${JSON.stringify(S.screens || {})} (PHQ-4 anxiety and depression 0–6, 3+ elevated; alcohol frequency and typical amount 0–8, 5+ worth a recommendation. No question was asked about drinking a lot on one occasion.)`;
 
 function planPrompt() {
-  return `You are planning a personal Good Span report. The Good Span helps adults build lasting healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. British English, warm, plain and confident, second person (“you”). Honest and specific, never shaming, never diagnostic. Write in flowing paragraphs, never bullet points. TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype.
+  return `You are planning a personal Good Span report. The Good Span helps adults build lasting healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. British English, warm, plain and confident, second person (“you”). Honest and specific, never shaming, never diagnostic. Write in flowing paragraphs, never bullet points. TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Calm and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype.
 
 ${CONTEXT()}
 TOPICS NOT REACHED: ${plan().filter(t => t.tier === 'ask' && !S.covered.includes(t.id)).map(t => t.id).join(', ') || 'none'}
 
-STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). "confidence" is "low" if the conversation said little. "assessment" is 2–4 sentences using what they actually said.
+STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). "confidence" is "low" if the conversation said little. "assessment" is 2–4 sentences using what they actually said, following the calibration rules.
 Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects how often they drink and how much on a typical day, smoking, and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
+
+${CALIBRATION}
 
 STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change in one area of their life (e.g. their evenings, their working day, how they exercise), built from 2–5 complementary practices from the LIBRARY that work together. Rules:
 - Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if their frequency-and-amount score is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
@@ -1111,7 +1113,7 @@ MECHANISMS (name | when | how | example | guardrail)
 ${mechForPrompt()}
 
 Reply with ONLY this JSON:
-{"summary":"3 or 4 short paragraphs separated by a blank line (\\n\\n), each one or two sentences, addressed as “you” (don’t start with their name): first their real strengths, then the main opportunity, then how the pieces connect and where to start. For women in perimenopause, menopause or postmenopause, include one warm, plain sentence acknowledging that the hormonal changes of this stage can be genuinely challenging and affect sleep, mood, energy and focus",
+{"summary":"3 or 4 short paragraphs separated by a blank line (\\n\\n), each one or two sentences, addressed as “you” (don’t start with their name): first what they told you is already part of their life, then where there may be room to explore, then how the areas connect and where they might start. For women in perimenopause, menopause or postmenopause, include one warm, plain sentence acknowledging that the hormonal changes of this stage can be genuinely challenging and affect sleep, mood, energy and focus",
 "pillars":[{"pillar":"Nutrition","level":"Learning|Developing|Mastering","confidence":"high|medium|low","assessment":"…"}, …all 6 in order Nutrition, Sleep, Movement, Mind, Connection, Prevention],
 "focus":["Pillar"],
 "plan":[{"pillar":"Sleep","theme":"2–4 word label, e.g. Evening wind-down","practiceIds":["SL36","SL48","SL32"],"barriers":"what gets in their way for this change, in their own terms","mechanisms":["Habit stacking","Friction reduction"]}],
@@ -1126,11 +1128,13 @@ Practices to combine:
 ${r.practiceIds.map(id => practiceFull(LIBMAP[id])).join('\n\n')}
 Mechanisms to apply:
 ${mechForPrompt(r.mechanisms)}`).join('\n\n---\n\n');
-  return `You are writing the recommendations in a personal Good Span report. British English, second person (“you”). TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Confident and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype. Write in flowing paragraphs, never bullet points, numbered steps or headings inside the text. Never shame, never diagnose, never promise disease prevention or a longer life, never give a fixed habit timeline. Never quote screening scores, tool names or labels (e.g. PHQ-4, AUDIT-C, “higher-risk drinker”); say what matters in plain, kind words. Never refer people to a doctor, GP, pharmacist or specialist, even where a practice’s details mention one. Instead, say once, calmly, in the paragraph where it belongs, that this is worth taking to their next conversation with a Good Span Longevity expert to look at together, and that the expert can refer them to the right specialist if needed. This applies to warning symptoms or blood pressure before harder exercise, falls, bone health, weight loss, sleep apnoea signs, heavy drinking, medicines and supplements, diabetes, screening and check-ups. Never mention mood screening, or any service for mood. For women in perimenopause, menopause or postmenopause: acknowledge once, warmly and without overstating, that hormonal changes in this stage can be challenging; and in the most relevant recommendation, encourage them to bring to their Good Span Longevity expert session a note of how they’ve been feeling, any tracking or symptoms they’ve noticed, what feels most challenging, and what they already do or don’t do, so they can decide on the best course of action together and be referred to the right specialist if needed.
+  return `You are writing the recommendations in a personal Good Span report. British English, second person (“you”). TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Calm and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype. Write in flowing paragraphs, never bullet points, numbered steps or headings inside the text. Never shame, never diagnose, never promise disease prevention or a longer life, never give a fixed habit timeline. Never quote screening scores, tool names or labels (e.g. PHQ-4, AUDIT-C, “higher-risk drinker”); say what matters in plain, kind words. Never refer people to a doctor, GP, pharmacist or specialist, even where a practice’s details mention one. Instead, say once, calmly, in the paragraph where it belongs, that this is worth taking to their next conversation with a Good Span Longevity expert to look at together, and that the expert can refer them to the right specialist if needed. This applies to warning symptoms or blood pressure before harder exercise, falls, bone health, weight loss, sleep apnoea signs, heavy drinking, medicines and supplements, diabetes, screening and check-ups. Never mention mood screening, or any service for mood. For women in perimenopause, menopause or postmenopause: acknowledge once, warmly and without overstating, that hormonal changes in this stage can be challenging; and in the most relevant recommendation, encourage them to bring to their Good Span Longevity expert session a note of how they’ve been feeling, any tracking or symptoms they’ve noticed, what feels most challenging, and what they already do or don’t do, so they can decide on the best course of action together and be referred to the right specialist if needed.
 
 ${CONTEXT()}
 
 WHAT WE CONCLUDED: ${P.summary}
+
+${CALIBRATION}
 
 For each recommendation below, write:
 - "title": a short, plain headline phrased as a recommendation, specific to them (e.g. “Rebuild your evenings so sleep can do its job”), not the practice name.
@@ -1157,7 +1161,11 @@ async function makeReport() {
     if (!P.plan.length) throw { code: 'invalid_json' };
     status('Tailoring each recommendation to you…');
     const W = await sample.json(writePrompt(P), { modelTier: 'default', signal: ctl.signal, cache: false });
-    S.report = merge(P, W); S.report.date = new Date().toISOString();
+    let draft = merge(P, W);
+    status('Checking your report against your conversation…');
+    try { draft = applyReview(draft, await sample.json(reviewPrompt(draft), { modelTier: 'default', signal: ctl.signal, cache: false })); }
+    catch (e) { if (e?.code === 'cancelled') throw e; } // if the review fails, keep the draft
+    S.report = draft; S.report.date = new Date().toISOString();
     S.generating = false; save();
     busy = false; renderLog();
     const rep = $('#logInner .inrep'); if (rep) rep.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1188,6 +1196,52 @@ function cleanPlan(d) {
     mechanisms: arr(r?.mechanisms).filter(m => mechNames.has(m)).slice(0, 4),
   })).filter(r => r.practiceIds.length).slice(0, 5);
   return { summary: str(d.summary), pillars, focus: arr(d.focus).filter(p => PILLARS.includes(p)), focusWhy: str(d.focusWhy), plan: planned, keepDoing: str(d.keepDoing), notCovered: str(d.notCovered) };
+}
+const CALIBRATION = `CALIBRATION (apply to every part of the report)
+- Calibrate the language to how much we actually know about this person from a short conversation. Keep meaningful personalisation and evidence-based recommendations; don’t make it generic or heavily hedged.
+- Keep three kinds of statement distinct: (1) facts and behaviours they directly reported, which you state plainly and accurately (“You said you wake around 3am most nights”); (2) general evidence-based guidance, attributed to the evidence (“Research suggests…”, “For many people…”); (3) interpretations, assumptions or possible opportunities you infer, which use cautious language (“this may be contributing”, “it could be worth exploring”, “you might find…”).
+- Don’t assume causality, clinical significance, individual suitability or how well something will work for them from limited context.
+- Avoid superlatives and evaluative or conclusive wording, such as “strong base”, “great”, “the main opportunity”, “the biggest”, “clearly”, “no change needed”, “the single most useful thing”, “the good news is”.
+- Don’t present recommendations as prescriptions or imply we know what’s best for them. Frame them as options to consider, try or explore, and explain why they may be relevant using what the person actually shared.
+- Don’t invent preferences, motivations, behavioural patterns or outcomes that the conversation didn’t establish.
+- Where personal context is limited, show it through calibrated wording, not by adding disclaimers. Don’t repeat caveats.
+- Keep it warm, thoughtful, specific and human: insightful and personal, while recognising it’s an initial picture from a short conversation, not a full health or wellbeing assessment.`;
+
+function reviewPrompt(R) {
+  const draft = {
+    summary: R.summary,
+    pillars: R.pillars.map(p => ({ pillar: p.pillar, assessment: p.assessment })),
+    recommendations: R.recommendations.map(r => ({ title: r.title, why: r.why, what: r.what, stick: r.stick })),
+    keepDoing: R.keepDoing,
+    notCovered: R.notCovered,
+  };
+  return `You are reviewing a draft Good Span report before the person sees it. Compare it against the actual conversation below and calibrate the language to the level of information we have about this individual.
+
+${CONTEXT()}
+
+${CALIBRATION}
+
+HOW TO REVIEW
+- Check every claim against the conversation. Anything stated as fact about the person must be something they actually said; correct or soften anything that isn’t. Remove invented preferences, motivations, patterns or outcomes.
+- Revise only where needed: claims that sound overly certain, clinical, judgemental, prescriptive or conclusive. Leave well-calibrated text as it is.
+- Apply this to the summary, each pillar assessment, every recommendation title, “why”, “what” and “stick”, “keepDoing” and “notCovered”.
+- Keep everything else intact: the structure and paragraph breaks, the practices, doses, timings and safety points, the **bold** markers on key actions, any line about taking something to a Good Span Longevity expert, and any acknowledgement of perimenopause or menopause. Keep British English and roughly the same length. Don’t add disclaimers.
+
+DRAFT
+${JSON.stringify(draft)}
+
+Reply with ONLY the revised JSON, in exactly the same shape as the draft.`;
+}
+function applyReview(R, V) {
+  if (!V || typeof V !== 'object') return R;
+  const s = v => (typeof v === 'string' && v.trim() ? v.trim() : null);
+  const out = { ...R };
+  out.summary = s(V.summary) || R.summary;
+  if (Array.isArray(V.pillars)) out.pillars = R.pillars.map(p => { const v = V.pillars.find(x => x?.pillar === p.pillar); return { ...p, assessment: s(v?.assessment) || p.assessment }; });
+  if (Array.isArray(V.recommendations)) out.recommendations = R.recommendations.map((r, i) => { const v = V.recommendations[i] || {}; return { ...r, title: s(v.title) || r.title, why: s(v.why) || r.why, what: s(v.what) || r.what, stick: s(v.stick) || r.stick }; });
+  out.keepDoing = s(V.keepDoing) || R.keepDoing;
+  out.notCovered = typeof V.notCovered === 'string' ? V.notCovered.trim() : R.notCovered;
+  return out;
 }
 function merge(P, W) {
   const w = Array.isArray(W?.recommendations) ? W.recommendations : [];
