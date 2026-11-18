@@ -411,7 +411,7 @@ const or = (...fs) => P => { const r = fs.map(f => f(P)); return r.includes(true
 const hasCondition = P => (P.conditions === undefined ? null : !!P.conditions);
 const flagFrom = k => P => (P[k] !== undefined ? !!P[k] : P.conditions === false ? false : null);
 const work = w => P => (P.work ? P.work === w : null);
-const postMeno = P => (P.menopause ? P.menopause === 'after' : null);
+const postMeno = P => (P.menopause ? ['post', 'after'].includes(P.menopause) : null);
 const ALL = () => true;
 const hotFlushes = P => {
   const f = female(P); if (f !== true) return f;
@@ -449,7 +449,7 @@ const TOPICS = [
   ['sleep.hours', 'sleep', 'D1 follow-up: hours of actual sleep, if not clear from their answer (fixed options: set "ask":"sleep_hours")', 'core', ALL],
   ['sleep.problems', 'sleep', 'D1 follow-up: trouble getting to sleep, waking in the night, waking too early or waking unrefreshed', 'core', ALL],
   ['sleep.other', 'sleep', 'D2: open catch-all: anything else important about their sleep, such as snoring, breathing problems or restless legs. If snoring, check whether it is loud or with pauses in breathing', 'core', ALL],
-  ['about.menopause_more', 'about', 'A7a (OPEN): for women going through or after menopause, how it’s affecting them day to day, if at all (for example sleep, mood, focus, energy, joints, hot flushes), and anything they already do or use to manage it, such as tracking symptoms, exercise, supplements or hormone therapy. Ask warmly, acknowledge that this stage can be hard, and let them share as much or as little as they like', 'core', P => (female(P) !== true ? female(P) : P.menopause ? ['during', 'after'].includes(P.menopause) : null)],
+  ['about.menopause_more', 'about', 'A7a (OPEN): for women in perimenopause, menopause or postmenopause, how it’s affecting them day to day, if at all (for example sleep, mood, focus, energy, joints, hot flushes), and anything they already do or use to manage it, such as tracking symptoms, exercise, supplements or hormone therapy. Ask warmly, acknowledge that this stage can be hard, and let them share as much or as little as they like', 'core', P => (female(P) !== true ? female(P) : P.menopause ? ['peri', 'menopause', 'post', 'during', 'after'].includes(P.menopause) : null)],
   ['sleep.menopause', 'sleep', 'D3 (OPEN): whether hot flushes or night sweats affect their sleep, and how much. Ask sensitively; skipping is fine', 'core', hotFlushes],
   ['sleep.shift', 'sleep', 'D4: how their shifts affect when and how well they sleep, and recovery after night shifts', 'core', work('shift')],
   ['sleep.naps', 'sleep', 'D5: whether they nap, how often and for how long', 'core', ageAtLeast(60)],
@@ -515,7 +515,7 @@ const TOPICS = [
   ['life.avoid', 'life', 'I6: anything they’d rather not do (fixed options, choose any: set "ask":"avoid")', 'core', ALL],
 ];
 const TOPIC_IDS = new Set(TOPICS.map(t => t[0]));
-const PROFILE_OPTS = { age: Object.keys(AGE_MIN), work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'during', 'after', 'unknown'] };
+const PROFILE_OPTS = { age: Object.keys(AGE_MIN), work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'peri', 'menopause', 'post', 'during', 'after', 'unknown'] };
 const GENDER_TO_SEX = { woman: 'female', female: 'female', man: 'male', male: 'male', other: 'other', unknown: 'unknown' };
 const GENDER_LABEL = { female: 'woman', male: 'man', other: 'another gender', unknown: 'prefer not to say' };
 
@@ -524,7 +524,7 @@ const GENDER_LABEL = { female: 'woman', male: 'man', other: 'another gender', un
 const ANSWER_SETS = {
   age:           { opts: ['18–29', '30–39', '40–49', '50–59', '60–69', '70 or over'] },
   gender:        { opts: ['Woman', 'Man', 'I describe myself another way', 'Prefer not to say'] },
-  menopause:     { opts: ['Not started', 'Going through it', 'Through it', 'Not sure', 'Prefer not to say'] },
+  menopause:     { opts: ['Haven’t started experiencing changes', 'Experiencing perimenopause', 'Menopause', 'Postmenopause', 'Not sure', 'Prefer not to say'] },
   sleep_hours:   { opts: ['Less than 5 hours', '5–6 hours', '6–7 hours', '7–8 hours', 'More than 8 hours'] },
   exercise_days: { opts: ['None at the moment', '1 day', '2 days', '3–4 days', '5 or more days'] },
   strength_days: { opts: ['None at the moment', 'Once a week', 'Twice a week', '3 or more times a week'] },
@@ -973,7 +973,7 @@ OUTPUT FORMAT, exactly:
 <your reply to the person>
 @@META
 {"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","ask":null,"flags":[],"screen":null,"ready":false}
-"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another way) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
+"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another way) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started (Haven’t started experiencing changes), peri (Experiencing perimenopause), menopause (Menopause), post (Postmenopause) or unknown (Not sure or prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
 Area ids: about, focus, nutrition, sleep, movement, mind, connection, prevention, life. Nothing after the JSON.`;
 }
 
@@ -1084,7 +1084,7 @@ STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change 
 - Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if AUDIT-C is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
 - Apply these SEGMENT RULES whenever they fit the person:
   · Aged 65+, or fallen or worried about falling: include strength and balance in any movement recommendation; if two or more falls, or difficulty getting up from a chair, lead with balance and functional strength and suggest taking their falls to their next conversation with a Good Span Longevity expert, who can arrange a falls review (PR33), and home hazards or night lighting where relevant.
-  · Women in perimenopause, menopause or postmenopause (menopause stage “during” or “after”, hot flushes or night sweats, or the menopause flag): this is a priority segment.
+  · Women in perimenopause, menopause or postmenopause (menopause stage “peri”, “menopause” or “post”, hot flushes or night sweats, or the menopause flag): this is a priority segment.
     – Draw on the practices in the category “Menopause & Hormonal Health” (PR73, PR74, PR75 (perimenopause), SL51, SL52, MI106, MI107, MI108, MI109, MI110, MO92, MO93, MO94, NU83, NU84, NU85, CO78) wherever they fit, alongside the general ones, so their recommendations reflect the menopause evidence; favour strength and weight-bearing exercise for bone health, and calcium and vitamin D from food.
     – Always include PR73 (symptom and mood diary) in one recommendation, and PR74 (preparing for the Longevity expert conversation) wherever it fits naturally.
     – If they have bone risk factors (past fracture, thin bones, long-term steroids), suggest taking the question of a bone scan to their Good Span Longevity expert (PR44).
