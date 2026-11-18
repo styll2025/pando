@@ -858,11 +858,17 @@ function answerScreen(ans) {
   save(); call();
 }
 
-// Removes an opening filler sentence such as “Lovely, that gives us a clear direction.” before the question.
+// Removes filler and any instruction the model speaks aloud, such as “No, avoid that opener.”
 function trimFiller(raw) {
-  const re = /^\s*(?:(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b[^.!?\n]*[.!?]\s*)+/i;
-  const out = raw.replace(re, '');
-  return out.split('@@META')[0].trim().length > 8 ? out : raw;
+  const cut = raw.indexOf('@@META');
+  const head = cut < 0 ? raw : raw.slice(0, cut);
+  const tail = cut < 0 ? '' : raw.slice(cut);
+  const filler = /^\s*(?:(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b[^.!?\n]*[.!?]\s*)+/i;
+  let text = head.replace(filler, '');
+  const leak = /opener|avoid that|skip the|fixed options|set ["“']?ask|mark(?: it| them)? covered|only if relevant|as instructed|exact question|no rephras|no examples|\(open\)|fixed-wording/i;
+  const kept = text.split(/(?<=[.!?])\s+/).filter(s => s.trim() && !leak.test(s));
+  if (kept.join(' ').trim().length > 8) text = kept.join(' ');
+  return (text.trim().length > 8 ? text : head) + tail;
 }
 
 function applyMeta(m) {
@@ -924,9 +930,10 @@ OPEN BY DEFAULT
 - For every other question, set "ask" to null. People can always type instead of tapping.
 - If someone picks “Something else”, or an answer hints at something that matters, ask one short open follow-up.
 - Ask neutral questions that don’t assume an answer: “How have you been feeling lately?”, not “How stressed have you been?”; “How does sleep usually go for you?”, not “What’s stopping you sleeping well?”.
-- Don’t narrate the conversation. Never comment on progress or what’s been covered (“Movement’s covered well”, “That gives us a clear direction”, “Next, let’s look at…”). When moving to a new area, go straight to the question; at most a few words of transition such as “And day to day,” or “On sleep,”.
-- In areas that are NOT a focus, skip the broad opener and go straight to the closed core questions, one after another, with a few words of transition at most.
-- In FOCUS areas, after the open opener, ask only the 2–3 follow-ups that will matter most for their recommendations. Don’t work through every topic on the list.
+- Your reply is only the words you would say to the person. Never include instructions, notes to yourself, or a reason for asking or skipping something. Never say “opener”, “avoid that”, “skip that”, “topic”, “covered”, “as instructed”, or anything about how the conversation is organised.
+- Don’t narrate the conversation. Never comment on progress or what’s been covered. When moving to a new area, go straight to the question; at most a few words such as “And day to day,” or “On sleep,”.
+- Where an area is not a focus, ask the specific questions directly, one after another.
+- Where an area is a focus, ask only the 2–3 questions that will matter most for their recommendations. Don’t work through every topic on the list.
 - Ask “ONLY IF RELEVANT” topics only when something they said clearly calls for it.
 - Ask for their first name only if it comes up naturally; never require it.
 - Aim to finish in about 20 of your messages in total, so the conversation takes 10–15 minutes. Prioritise what matters most for their recommendations; it’s better to leave a minor topic unasked than to run long.
