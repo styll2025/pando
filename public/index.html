@@ -431,7 +431,7 @@ const TOPICS = [
   ['about.symptoms', 'about', 'A6: warning symptoms in the past three months. FIXED-WORDING SCREEN: set "screen":"symptoms"', 'core', or(ageAtLeast(40), hasCondition)],
   ['about.menopause', 'about', 'A7: ask this exact question, with no rephrasing, and set "ask":"menopause" so the options appear: “Have you noticed any changes related to menopause, or are you going through that transition at the moment? You can tell me a little about where you are, or skip this if you\'d prefer.”', 'core', and(female, ageBetween(40, 60))],
   ['about.other', 'about', 'A8 (OPEN): anything else about their health Pando should know before suggesting anything (an injury, a life stage, anything they want considered). Let them choose what to share', 'core', ALL],
-  ['focus.areas', 'focus', 'B1: which one or two areas they’d most like to improve, and why (often answered by the opening question)', 'core', ALL],
+  ['focus.areas', 'focus', 'B1: ask this exact question, with no rephrasing: “Looking across the six areas of longevity that The Good Span covers (nutrition, sleep, movement, mind, connection and prevention), which one or two would you most like to improve, and why?” If the opening answer already named the areas and why, mark it covered and don’t ask again', 'core', ALL],
 
   ['nutrition.plants', 'nutrition', 'C1 follow-up (OPEN): how many vegetables and fruit they usually have, whole grains, beans and plant variety, only if their description of a typical week didn’t make it clear', 'core', ALL],
   ['nutrition.protein', 'nutrition', 'C1 follow-up: how many main meals include protein (matters more from 60)', 'core', ALL],
