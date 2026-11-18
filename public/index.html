@@ -429,7 +429,7 @@ const TOPICS = [
   ['about.diabetes', 'about', 'A4b: how their blood sugar control is at the moment, and whether they know their latest HbA1c', 'core', flagFrom('diabetes')],
   ['about.medicines', 'about', 'A5 (OPEN): regular medicines and supplements they take', 'core', or(ageAtLeast(50), hasCondition)],
   ['about.symptoms', 'about', 'A6: warning symptoms in the past three months. FIXED-WORDING SCREEN: set "screen":"symptoms"', 'core', or(ageAtLeast(40), hasCondition)],
-  ['about.menopause', 'about', 'A7: where they are with menopause. Ask gently (fixed options: set "ask":"menopause")', 'core', and(female, ageBetween(40, 60))],
+  ['about.menopause', 'about', 'A7: ask this exact question, with no rephrasing, and set "ask":"menopause" so the options appear: “Have you noticed any changes related to menopause, or are you going through that transition at the moment? You can tell me a little about where you are, or skip this if you\'d prefer.”', 'core', and(female, ageBetween(40, 60))],
   ['about.other', 'about', 'A8 (OPEN): anything else about their health Pando should know before suggesting anything (an injury, a life stage, anything they want considered). Let them choose what to share', 'core', ALL],
   ['focus.areas', 'focus', 'B1: which one or two areas they’d most like to improve, and why (often answered by the opening question)', 'core', ALL],
 
@@ -917,7 +917,7 @@ HOW TO TALK
 OPEN BY DEFAULT
 - Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”. The health-conditions question is the exception: ask it in the exact words given, even though it starts with “Has”.
 - Answer buttons exist for only a few topics, and the app supplies them, not you. When your question is one of these, write a short, direct question that fits the options and set "ask" to its name. Never list options in your message.
-  · "age": their age range · "gender": their gender, never the word sex · "menopause": menopause stage (women 40–60)
+  · "age": their age range · "gender": their gender, never the word sex · "menopause": menopause stage (women 40–60). For menopause, use the exact question in the topic, not a shorter version.
   · "sleep_hours": hours of sleep · "exercise_days": days a week of exercise that makes them breathe harder · "strength_days": strength sessions a week
   · "sitting_hours": hours sitting on a typical day · "smoking": whether they smoke or vape
   · "weekly_time": time a week for new habits · "pace": how big a change feels right · "avoid": types of practice they’d rather not do (choose any)
