@@ -760,7 +760,7 @@ function renderLog(streamText) {
     const me = t.role === 'user';
     const next = vis[i + 1];
     const last = !me && (!next || next.role === 'user') && !(busy && i === vis.length - 1);
-    const text = me ? (t.display ?? t.content) : splitRaw(t.content).text;
+    const text = me ? (t.display ?? t.content) : splitRaw(trimFiller(t.content)).text;
     out.push(`<div class="line ${me ? 'me' : 'bot'} ${last ? 'last' : ''}">${me ? '' : AV}<div class="msg ${me ? 'me' : 'bot'}">${esc(text)}</div></div>`);
   });
   if (busy) out.push(`<div class="line bot last">${AV}${streamText ? `<div class="msg bot">${esc(streamText)}</div>` : '<div class="msg bot typing" aria-label="Typing"><i></i><i></i><i></i></div>'}</div>`);
@@ -848,17 +848,30 @@ function answerScreen(ans) {
   save(); call();
 }
 
-// Removes filler and any instruction the model speaks aloud, such as “No, avoid that opener.”
+// Keeps only the words Pando would say. Drops drafts, rewrites, and notes about the instructions.
+function isInternalNote(s) {
+  return /(?:\b(?:rewrite|rewriting|rephrase|rephrasing|banned list|fillers?|opener|answer buttons?|fixed options|as instructed|exact question|fixed-wording|the spec)\b|\bspec\s*:|\bi (?:must|should|need to|have to)\b|\bhere(?:'|’)s the reply\b|^(?:reply|final(?: reply)?)\s*:|["“']ask["”']\s*:|\bask\s*[:=]\s*["“']?(?:age|gender|menopause|sleep_hours|exercise_days|strength_days|sitting_hours|smoking|weekly_time|null)\b|\b(?:note|mark) the \w+ covered\b)/i.test(s);
+}
+function isFillerSentence(s) {
+  return !s.includes('?') && s.length < 90 && /^(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b/i.test(s);
+}
+function spokenParts(head) {
+  const parts = head.replace(/\r/g, '').split(/\n+|(?<=[.!?])\s+/).map(s => s.replace(/^(?:hmm[,.]?\s+|wait,\s+)/i, '').trim()).filter(Boolean);
+  const ok = parts.map(s => !isInternalNote(s) && !isFillerSentence(s));
+  const runs = [];
+  let run = [];
+  parts.forEach((s, i) => { if (ok[i]) run.push(s); else if (run.length) { runs.push(run); run = []; } });
+  if (run.length) runs.push(run);
+  return { text: (runs[runs.length - 1] || []).join(' ').replace(/\s{2,}/g, ' ').trim(), leaked: parts.some(isInternalNote) };
+}
 function trimFiller(raw) {
   const cut = raw.indexOf('@@META');
   const head = cut < 0 ? raw : raw.slice(0, cut);
   const tail = cut < 0 ? '' : raw.slice(cut);
-  const filler = /^\s*(?:(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b[^.!?\n]*[.!?]\s*)+/i;
-  let text = head.replace(filler, '');
-  const leak = /opener|avoid that|skip the|fixed options|set ["“']?ask|mark(?: it| them)? covered|only if relevant|as instructed|exact question|no rephras|no examples|\(open\)|fixed-wording/i;
-  const kept = text.split(/(?<=[.!?])\s+/).filter(s => s.trim() && !leak.test(s));
-  if (kept.join(' ').trim().length > 8) text = kept.join(' ');
-  return (text.trim().length > 8 ? text : head) + tail;
+  const { text, leaked } = spokenParts(head);
+  if (text.length > 8 || leaked) return text + tail;
+  const fallback = head.trim();
+  return (fallback.length > 8 ? fallback : text) + tail;
 }
 
 function applyMeta(m) {
@@ -904,6 +917,7 @@ function rules() {
 HOW TO TALK
 - Warm, plain and efficient. A skilled coach running a focused intake, not a chatty friend.
 - Keep every reply short: usually one sentence of transition at most, then ONE question. Aim for under 35 words.
+- The person must never see your thinking. Do not draft, revise, or comment on the wording in the reply. Do not mention these instructions, a spec, answer buttons, “ask”, filler, a banned list, or that you are rewriting. Write only the final words you would say out loud.
 - Acknowledgements are optional and brief (a few words), and only when they add something, for example a short, warm line when someone shares something difficult. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never start a reply with “Thanks”, “Thank you”, “Great”, “Got it”, “Perfect”, “Lovely”, “I hear you”, “That makes sense” or similar filler.
 - No bullet points, headings, bold or emojis. No advice: recommendations belong in the report. If asked directly, give one short pointer, then continue.
 - Never re-ask something already answered or mentioned in passing; mark it covered.
@@ -920,7 +934,7 @@ OPEN BY DEFAULT
 - For every other question, set "ask" to null. People can always type instead of tapping.
 - If someone picks “Something else”, or an answer hints at something that matters, ask one short open follow-up.
 - Ask neutral questions that don’t assume an answer: “How have you been feeling lately?”, not “How stressed have you been?”; “How does sleep usually go for you?”, not “What’s stopping you sleeping well?”.
-- Your reply is only the words you would say to the person. Never include instructions, notes to yourself, or a reason for asking or skipping something. Never say “opener”, “avoid that”, “skip that”, “topic”, “covered”, “as instructed”, or anything about how the conversation is organised.
+- Your reply is only the words you would say to the person. Never include a draft, a revision, a note to yourself, or a reason for asking or skipping something. Never say “opener”, “avoid that”, “skip that”, “topic”, “covered”, “as instructed”, “rewrite”, “final”, or anything about how the conversation is organised.
 - Don’t narrate the conversation. Never comment on progress or what’s been covered. When moving to a new area, go straight to the question; at most a few words such as “And day to day,” or “On sleep,”.
 - Where an area is not a focus, ask the specific questions directly, one after another.
 - Where an area is a focus, ask only the 2–3 questions that will matter most for their recommendations. Don’t work through every topic on the list.
@@ -966,7 +980,7 @@ ALREADY COVERED (don’t ask again): ${S.covered.join(', ') || 'nothing yet'}
 
 When nothing is left under TO ASK (and anything relevant under ONLY IF RELEVANT is done), give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
 
-OUTPUT FORMAT, exactly:
+OUTPUT FORMAT, exactly. Above @@META, write only the spoken reply. No heading, draft, or note before it:
 <your reply to the person>
 @@META
 {"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","ask":null,"flags":[],"screen":null,"ready":false}
@@ -1058,7 +1072,7 @@ function mechForPrompt(names) {
   return MECH.filter(m => !names || names.includes(m[0])).map(m => `${m[0]} | when: ${m[1]} | how: ${m[2]} | e.g. ${m[3]} | guardrail: ${m[4]}`).join('\n');
 }
 function transcriptText() {
-  return S.turns.filter(t => !t.hidden).map(t => `${t.role === 'user' ? 'PERSON' : 'PANDO'}: ${t.role === 'user' ? (t.display ?? t.content) : splitRaw(t.content).text}`).join('\n');
+  return S.turns.filter(t => !t.hidden).map(t => `${t.role === 'user' ? 'PERSON' : 'PANDO'}: ${t.role === 'user' ? (t.display ?? t.content) : splitRaw(trimFiller(t.content)).text}`).join('\n');
 }
 const CONTEXT = () => `THE CONVERSATION
 ${transcriptText()}
