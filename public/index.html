@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Good Span: Pando</title>
 <meta name="robots" content="noindex">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
 <script>
   // Site settings. Add your Cloudflare Turnstile site key to protect the chat from bots (see README).
   window.GS_CONFIG = { turnstileSiteKey: "" };
@@ -21,15 +23,9 @@
   --focus:var(--plum);--warn:#9e3a07;--bot:#ffffff;--chat-bg:var(--light-blue);--tag-ink:#4d2831;--hc-empty:#ffffff;--hc-centre:var(--cream);--hc-halo:transparent;--hc-nutrition:#e5b47e;--hc-sleep:#b9dade;--hc-movement:#ff9a5e;--hc-mind:#f8c2d6;--hc-connection:#d2b3ba;--hc-prevention:#a9cdd2;
   --c-about:#a58c90;--c-focus:#a58c90;--c-nutrition:var(--ochre);--c-sleep:#9cc6cc;--c-movement:var(--orange);--c-mind:var(--pink);--c-connection:#8a5a66;--c-prevention:#5e8f96;--c-life:#a58c90;
   --font-display:"BST Bazaine","Helvetica Neue",Arial,sans-serif;--font-ui:Archivo,"Helvetica Neue",Arial,sans-serif;
-  color-scheme:light;box-sizing:border-box;
+  color-scheme:light only;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --surface:var(--plum);--surface-alt:#61373f;--ink:var(--light-blue);--ink-muted:#b0b6bb;--line:var(--cream);--soft-line:rgba(255,242,234,.24);
-  --button-fill:var(--light-blue);--button-ink:var(--plum);--bubble:#6a3f48;--bubble-ink:var(--cream);--focus:var(--light-blue);--warn:#ffb48a;--bot:#5e3540;--chat-bg:var(--plum);--tag-ink:#fff2ea;--hc-empty:#5e3540;--hc-centre:var(--plum);--hc-halo:transparent;--hc-nutrition:#a8703a;--hc-sleep:#4f7f86;--hc-movement:#c4521b;--hc-mind:#a0607a;--hc-connection:#7d5560;--hc-prevention:#3f6d73;color-scheme:dark}}
-:root[data-theme="dark"]{
-  --surface:var(--plum);--surface-alt:#61373f;--ink:var(--light-blue);--ink-muted:#b0b6bb;--line:var(--cream);--soft-line:rgba(255,242,234,.24);
-  --button-fill:var(--light-blue);--button-ink:var(--plum);--bubble:#6a3f48;--bubble-ink:var(--cream);--focus:var(--light-blue);--warn:#ffb48a;--bot:#5e3540;--chat-bg:var(--plum);--tag-ink:#fff2ea;--hc-empty:#5e3540;--hc-centre:var(--plum);--hc-halo:transparent;--hc-nutrition:#a8703a;--hc-sleep:#4f7f86;--hc-movement:#c4521b;--hc-mind:#a0607a;--hc-connection:#7d5560;--hc-prevention:#3f6d73;color-scheme:dark}
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
@@ -37,8 +33,6 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{background:var(--surface);color:var(--ink);font-family:var(--font-display);font-weight:300;font-size:18px;line-height:24px}
 .logo{display:block;height:20px;width:auto}
 .logo.dk,.sym.dk{display:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lt{display:none}:root:not([data-theme="light"]) .dk{display:block}}
-:root[data-theme="dark"] .lt{display:none}:root[data-theme="dark"] .dk{display:block}
 button,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 h1,h2,h3{font-weight:200;margin:0;text-wrap:balance}
