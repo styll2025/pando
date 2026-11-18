@@ -510,9 +510,8 @@ const TOPICS = [
   ['life.enjoy', 'life', 'I1 (OPEN): what they enjoy doing in their free time', 'core', ALL],
   ['life.barriers', 'life', 'I2 (OPEN): what usually gets in the way of changing a habit, and what has helped before', 'core', ALL],
   ['life.support', 'life', 'I3: what help would make it easier: reminders, tracking, doing it with others, or keeping it private', 'core', ALL],
-  ['life.time', 'life', 'I4: realistic weekly time for new habits; things they already do don’t count (fixed options: set "ask":"weekly_time")', 'core', ALL],
-  ['life.pace', 'life', 'I5: how big a change feels right to start with (fixed options: set "ask":"pace")', 'core', ALL],
-  ['life.avoid', 'life', 'I6: anything they’d rather not do (fixed options, choose any: set "ask":"avoid")', 'core', ALL],
+  ['life.time', 'life', 'I4: ask this exact question, with no rephrasing, and set "ask":"weekly_time" so the options appear: “How much space do you feel you can make for your wellbeing right now?”', 'core', ALL],
+  ['life.avoid', 'life', 'I5 (OPEN): ask this exact question, with no rephrasing and no answer buttons (set "ask" to null): “Are there any practices, activities, or approaches that you particularly enjoy, dislike, or feel wouldn’t work for you?”', 'core', ALL],
 ];
 const TOPIC_IDS = new Set(TOPICS.map(t => t[0]));
 const PROFILE_OPTS = { age: Object.keys(AGE_MIN), work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'peri', 'menopause', 'post', 'during', 'after', 'unknown'] };
@@ -530,9 +529,7 @@ const ANSWER_SETS = {
   strength_days: { opts: ['None at the moment', 'Once a week', 'Twice a week', '3 or more times a week'] },
   sitting_hours: { opts: ['Less than 4 hours', '4–6 hours', '6–8 hours', '8–10 hours', 'More than 10 hours'] },
   smoking:       { opts: ['I’ve never smoked or vaped', 'I used to', 'Occasionally', 'Every day'] },
-  weekly_time:   { opts: ['About 45–60 minutes', '1–2 hours', '2–4 hours', 'More than 4 hours', 'It varies'] },
-  pace:          { opts: ['Small, easy steps', 'Something in between', 'A bigger challenge'] },
-  avoid:         { multi: true, opts: ['Tracking food', 'Apps or devices', 'Fasting or eating windows', 'Meditation', 'Journalling', 'Early mornings', 'Something else', 'None of these'] },
+  weekly_time:   { opts: ['A little — small changes feel manageable', 'Some — I can make room for a few practices', 'Quite a bit — I’m ready to prioritise this', 'It depends on the week', 'I’m not sure yet'] },
 };
 
 // Screening questions with fixed wording and answers (validated tools), asked by the app, not paraphrased.
@@ -920,12 +917,12 @@ HOW TO TALK
 - If they want to stop early, check they’re sure, then wrap up and set ready to true.
 
 OPEN BY DEFAULT
-- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”. The health-conditions question is the exception: ask it in the exact words given, even though it starts with “Has”.
+- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”. Two questions are exceptions and must be asked in the exact words given: the health-conditions question, even though it starts with “Has”, and the practices question, even though it starts with “Are”.
 - Answer buttons exist for only a few topics, and the app supplies them, not you. When your question is one of these, write a short, direct question that fits the options and set "ask" to its name. Never list options in your message.
   · "age": their age range · "gender": their gender, never the word sex · "menopause": menopause stage (women 40–60). For menopause, use the exact question in the topic, not a shorter version.
   · "sleep_hours": hours of sleep · "exercise_days": days a week of exercise that makes them breathe harder · "strength_days": strength sessions a week
   · "sitting_hours": hours sitting on a typical day · "smoking": whether they smoke or vape
-  · "weekly_time": time a week for new habits · "pace": how big a change feels right · "avoid": types of practice they’d rather not do (choose any)
+  · "weekly_time": how much space they can make for their wellbeing right now. Use the exact question in the topic, not a shorter version.
 - For every other question, set "ask" to null. People can always type instead of tapping.
 - If someone picks “Something else”, or an answer hints at something that matters, ask one short open follow-up.
 - Ask neutral questions that don’t assume an answer: “How have you been feeling lately?”, not “How stressed have you been?”; “How does sleep usually go for you?”, not “What’s stopping you sleeping well?”.
@@ -1108,8 +1105,8 @@ STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change 
   · Flag exercise_symptoms or high_bp_reading: no step-ups in exercise intensity until a clinician has reviewed; keep to gentle activity they already do, and suggest talking it through with their Good Span Longevity expert before stepping up.
   · Flag alcohol_dependence: only gradual reduction, never suggest stopping suddenly; suggest taking it to their Good Span Longevity expert, as stopping suddenly can be unsafe.
   · Flag food_relationship: no food tracking, calorie or portion targets, eating windows or restrictive practices.
-- Micro-personalise the choice: their age, gender, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, what they’d rather not do, the pace they asked for and the time they have (45–60 min → about 60 new minutes a week in total; 1–2 h → 120; 2–4 h → 240; 4 h+ → 300; unknown → 60).
-- Match levels to them: Learning practices for small steps or where they are starting out; Developing for “something in between”; Mastering only where they are already strong. Rows with no level are general practices: use them when they fit.
+- Micro-personalise the choice: their age, gender, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, and what they said they dislike or feel wouldn’t work. Size new habits to the space they can make: “A little” or “I’m not sure yet” → about 60 new minutes a week and small changes; “It depends on the week” → about 60, with room to do a little more in an easier week; “Some” → about 120 minutes and a few practices; “Quite a bit” → about 240 minutes. If they didn’t answer, use about 60.
+- Match levels to them: Learning practices when they can make only a little space, are not sure yet, or are starting out; Developing when they can make some room; Mastering only where they are already strong and ready to prioritise this. Rows with no level are general practices: use them when they fit.
 - Never choose a practice whose caution applies to them without that caution being addressed, or anything clashing with what they told you. Don’t recommend what they already do well. Prefer Foundation and Targeted evidence; use Explore practices only as supporting elements.
 - For each recommendation, diagnose what gets in the way (COM-B: capability, opportunity or motivation) from what they said, and choose 2–4 MECHANISMS that answer it. Use social, tracking or reminder mechanisms only if they welcomed that kind of support. Never assume motivation is the problem.
 
@@ -1144,7 +1141,7 @@ WHAT WE CONCLUDED: ${P.summary}
 For each recommendation below, write:
 - "title": a short, plain headline phrased as a recommendation, specific to them (e.g. “Rebuild your evenings so sleep can do its job”), not the practice name.
 - "why" (50–70 words): why this change is right for them now, naming what they told you and the reasoning a good clinician or coach would give. Don’t repeat their overall assessment.
-- "what" (80–120 words, one or two short paragraphs separated by a blank line): exactly what to do, combining the practices into one routine with doses, timings and how, adapted to their life (schedule, home, work, injuries, what they enjoy). Say where to start if their pace calls for an easier first step. If a caution applies to them, state it plainly here.
+- "what" (80–120 words, one or two short paragraphs separated by a blank line): exactly what to do, combining the practices into one routine with doses, timings and how, adapted to their life (schedule, home, work, injuries, what they enjoy, and what they dislike or feel wouldn’t work). Say where to start with an easier first step when they can make only a little space, it depends on the week, or they are not sure yet. If a caution applies to them, state it plainly here.
 - "stick" (70–110 words): how to make it happen AND why that will work for them. Apply the mechanisms to the barriers they described in concrete detail (the cue, what to prepare, what to do when it slips), and for each one explain in plain words the behavioural reason it helps the habit stick, so the advice feels convincing rather than obvious. For example: linking a new habit to something they already do every day means the existing routine acts as the reminder, so it relies less on memory or willpower and becomes automatic sooner; deciding the when and where in advance removes a decision at the moment they’re tired, which is when good intentions usually fail; making the healthy option the easiest one within reach works because most daily choices are made on autopilot. Use everyday language rather than technical terms, and tie each reason to what they told you.
 Style for all three: short, plain sentences; say each thing once (never repeat a point between sections or from the assessment); cut filler and generic advice. Mark the 2–4 most important actions, doses or cautions in each recommendation in **double asterisks**, a few words each; don’t bold whole sentences.
 
