@@ -586,7 +586,7 @@ const FLAGS = { exercise_symptoms: 'Possible warning symptoms with exercise', sl
 
 const KEY = 'tgs-chat-v8';
 const welcomeFor = name => `Hi ${name}, I’m Pando.\n\nI’d like to help you build a clearer picture of how you’re doing across the areas of life that contribute to long-term health and wellbeing: nutrition, sleep, movement, mind, connection and prevention.\n\nWe’ll spend around 10 to 15 minutes talking about your everyday habits, what matters to you, what’s working well and where you might want to make a change. I’ll use what you share to create a personalised Good Span report, with practical suggestions that take your circumstances, preferences and goals into account.\n\nThere are no right or wrong answers, and this isn’t a test. The aim is to understand what matters to you and help you find a realistic place to start.\n\nTo begin, what’s prompted you to explore your health and wellbeing at this point in your life?`;
-const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
+const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, asking: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
 let S = load() || fresh();
 function load() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
@@ -795,6 +795,9 @@ function send(text, hidden = false) {
   text = String(text || '').trim();
   if (!text || busy) return;
   if (S.screen) { answerScreen(text); return; }
+  // Whatever they answer, including “I don’t know”, the topic they were asked about counts as covered.
+  if (!hidden && S.asking && !S.covered.includes(S.asking)) S.covered.push(S.asking);
+  S.asking = null;
   S.turns.push({ role: 'user', content: text, hidden });
   if (!hidden && RISK_WORDS.test(text) && !S.flags.includes('crisis')) { addFlag('crisis_keyword', text); S.riskNotice = true; }
   S.chips = []; lastErr = null; save();
@@ -809,11 +812,15 @@ async function call() {
   const input = [{ role: 'user', content: rules() + (S.riskNotice ? '\n\nSAFETY NOTICE: the person’s latest message may indicate they are at risk. Follow the crisis rule now.' : '') }, ...recent.map(t => ({ role: t.role, content: t.content }))];
   S.riskNotice = false;
   try {
-    const res = await sample(input, {
-      cache: false, modelTier: 'quick', signal: ctl.signal,
-      onText: ({ text }) => renderLog(splitRaw(trimFiller(text)).text),
-    });
-    const text = trimFiller(res.text);
+    // Wait for the whole reply, then clean it before anyone sees it. If notes about the instructions remain, ask once more.
+    let res = await sample(input, { cache: false, modelTier: 'quick', signal: ctl.signal });
+    let text = cleanReply(res.text);
+    if (leaks(splitRaw(text).text)) {
+      const strict = [{ role: 'user', content: input[0].content + '\n\nIMPORTANT: Your previous attempt included drafts or notes about your instructions. Reply with the final message to the person only, then the data block. No drafts, no self-corrections, no commentary.' }, ...input.slice(1)];
+      res = await sample(strict, { cache: false, modelTier: 'quick', signal: ctl.signal });
+      text = cleanReply(res.text);
+      if (leaks(splitRaw(text).text)) text = stripLeaks(text);
+    }
     const { text: said, meta } = splitRaw(text);
     applyMeta(meta);
     const sc = meta && SCREENS[meta.screen] && !S.covered.includes(SCREENS[meta.screen].topic) && plan().some(t => t.id === SCREENS[meta.screen].topic) ? meta.screen : null;
@@ -848,6 +855,25 @@ function answerScreen(ans) {
   save(); call();
 }
 
+// Pando sometimes thinks out loud. Keep only the final spoken message, and detect anything that is still a note.
+const LEAK = /(\bwait,|\bhmm\b|\brewrite\b|\bfinal(?: answer| reply| version)?:|\bhere(?:'|’)s (?:the|my) (?:reply|answer|message)\b|\bthe spec\b|\bbanned\b|\bfiller\b|\bthe rules?\b|\bmy instructions\b|\bI must (?:not|avoid)\b|\bI should (?:not |avoid |also |note )|\bnot on the .* list\b|"ask"|\bdata block\b|\btopic id\b|\bcovered\b.*\bmark\b|\bmark(?:ed)? (?:it |this )?covered\b|@@META)/i;
+function leaks(said) { return LEAK.test(said || ''); }
+function cleanReply(raw) {
+  let text = String(raw || '');
+  const parts = text.split('@@META');
+  let said = parts[0], meta = parts.length > 1 ? '@@META' + parts.slice(1).join('@@META') : '';
+  const fin = [...said.matchAll(/\b(?:final(?: answer| reply| version)?|here(?:'|’)s (?:the|my) (?:reply|answer|message))\s*:\s*/gi)].pop();
+  if (fin) said = said.slice(fin.index + fin[0].length);
+  return trimFiller(said.trim() + (meta ? '\n' + meta : ''));
+}
+function stripLeaks(raw) {
+  const parts = String(raw || '').split('@@META');
+  const keep = parts[0].split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim() && !LEAK.test(s) && !isInternalNote(s));
+  const last = keep.filter(s => /\?\s*$/.test(s)).pop();
+  const said = (keep.length ? keep.slice(-2).join(' ') : '') || last || 'Could you tell me a little more?';
+  return trimFiller(said + (parts.length > 1 ? '\n@@META' + parts.slice(1).join('@@META') : ''));
+}
+
 // Keeps only the words Pando would say. Drops drafts, rewrites, and notes about the instructions.
 function isInternalNote(s) {
   return /(?:\b(?:rewrite|rewriting|rephrase|rephrasing|banned list|fillers?|opener|answer buttons?|fixed options|as instructed|exact question|fixed-wording|the spec)\b|\bspec\s*:|\bi (?:must|should|need to|have to)\b|\bhere(?:'|’)s the reply\b|^(?:reply|final(?: reply)?)\s*:|["“']ask["”']\s*:|\bask\s*[:=]\s*["“']?(?:age|gender|menopause|sleep_hours|exercise_days|strength_days|sitting_hours|smoking|weekly_time|null)\b|\b(?:note|mark) the \w+ covered\b)/i.test(s);
@@ -879,6 +905,7 @@ function applyMeta(m) {
   for (const id of (Array.isArray(m.covered) ? m.covered : [])) if (TOPIC_IDS.has(id) && !S.covered.includes(id)) S.covered.push(id);
   for (const f of (Array.isArray(m.flags) ? m.flags : [])) if (typeof f === 'string' && /^[a-z_]{3,30}$/.test(f) && !S.flags.includes(f)) addFlag(f);
   if (AREAS.some(a => a.id === m.area)) S.area = m.area;
+  S.asking = TOPIC_IDS.has(m.asking) ? m.asking : null;
   const set = ANSWER_SETS[m.ask];
   S.chips = set ? set.opts.slice() : [];
   S.chipsMulti = !!set?.multi;
@@ -917,11 +944,11 @@ function rules() {
 HOW TO TALK
 - Warm, plain and efficient. A skilled coach running a focused intake, not a chatty friend.
 - Keep every reply short: usually one sentence of transition at most, then ONE question. Aim for under 35 words.
-- The person must never see your thinking. Do not draft, revise, or comment on the wording in the reply. Do not mention these instructions, a spec, answer buttons, “ask”, filler, a banned list, or that you are rewriting. Write only the final words you would say out loud.
-- Acknowledgements are optional and brief (a few words), and only when they add something, for example a short, warm line when someone shares something difficult. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never start a reply with “Thanks”, “Thank you”, “Great”, “Got it”, “Perfect”, “Lovely”, “I hear you”, “That makes sense” or similar filler.
+- Write only the final message to the person. Never include drafts, rewrites, self-corrections, reasoning, or any mention of your instructions, rules, topics, answer buttons, or the data block.
+- Acknowledgements are optional and brief (a few words), and only when they add something, for example a short, warm line when someone shares something difficult. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never start a reply with “Thanks”, “Thank you”, “Great”, “Got it”, “Perfect”, “Lovely”, “Understood”, “I hear you”, “That makes sense” or similar filler.
 - No bullet points, headings, bold or emojis. No advice: recommendations belong in the report. If asked directly, give one short pointer, then continue.
 - Never re-ask something already answered or mentioned in passing; mark it covered.
-- “Prefer not to say” or skipping is always fine: mark the topic covered and move on.
+- “Prefer not to say”, “I don’t know”, “not sure” or skipping are all fine answers: mark the topic covered and move on. Never ask the same thing again later. Set "asking" to the topic id of the question you just asked, so their answer is recorded even when they are not sure.
 - If they want to stop early, check they’re sure, then wrap up and set ready to true.
 
 OPEN BY DEFAULT
@@ -935,7 +962,7 @@ OPEN BY DEFAULT
 - If someone picks “Something else”, or an answer hints at something that matters, ask one short open follow-up.
 - Ask neutral questions that don’t assume an answer: “How have you been feeling lately?”, not “How stressed have you been?”; “How does sleep usually go for you?”, not “What’s stopping you sleeping well?”.
 - Your reply is only the words you would say to the person. Never include a draft, a revision, a note to yourself, or a reason for asking or skipping something. Never say “opener”, “avoid that”, “skip that”, “topic”, “covered”, “as instructed”, “rewrite”, “final”, or anything about how the conversation is organised.
-- Don’t narrate the conversation. Never comment on progress or what’s been covered. When moving to a new area, go straight to the question; at most a few words such as “And day to day,” or “On sleep,”.
+- Don’t narrate the conversation. Never comment on progress or what’s been covered (“Movement’s covered well”, “That gives us a clear direction”, “Next, let’s look at…”). When moving to a new area, go straight to the question; at most a few words such as “And day to day,” or “On sleep,”.
 - Where an area is not a focus, ask the specific questions directly, one after another.
 - Where an area is a focus, ask only the 2–3 questions that will matter most for their recommendations. Don’t work through every topic on the list.
 - Ask “ONLY IF RELEVANT” topics only when something they said clearly calls for it.
@@ -983,7 +1010,7 @@ When nothing is left under TO ASK (and anything relevant under ONLY IF RELEVANT 
 OUTPUT FORMAT, exactly. Above @@META, write only the spoken reply. No heading, draft, or note before it:
 <your reply to the person>
 @@META
-{"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","ask":null,"flags":[],"screen":null,"ready":false}
+{"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","ask":null,"asking":"the topic id your question is about, or null","flags":[],"screen":null,"ready":false}
 "profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another way) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started (Haven’t started experiencing changes), peri (Experiencing perimenopause), menopause (Menopause), post (Postmenopause) or unknown (Not sure or prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
 Area ids: about, focus, nutrition, sleep, movement, mind, connection, prevention, life. Nothing after the JSON.`;
 }
