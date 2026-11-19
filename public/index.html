@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Good Span: Pando</title>
 <meta name="robots" content="noindex">
-<meta name="color-scheme" content="light only">
-<meta name="supported-color-schemes" content="light">
 <script>
   // Site settings. Add your Cloudflare Turnstile site key to protect the chat from bots (see README).
   window.GS_CONFIG = { turnstileSiteKey: "" };
@@ -23,9 +21,15 @@
   --focus:var(--plum);--warn:#9e3a07;--bot:#ffffff;--chat-bg:var(--light-blue);--tag-ink:#4d2831;--hc-empty:#ffffff;--hc-centre:var(--cream);--hc-halo:transparent;--hc-nutrition:#e5b47e;--hc-sleep:#b9dade;--hc-movement:#ff9a5e;--hc-mind:#f8c2d6;--hc-connection:#d2b3ba;--hc-prevention:#a9cdd2;
   --c-about:#a58c90;--c-focus:#a58c90;--c-nutrition:var(--ochre);--c-sleep:#9cc6cc;--c-movement:var(--orange);--c-mind:var(--pink);--c-connection:#8a5a66;--c-prevention:#5e8f96;--c-life:#a58c90;
   --font-display:"BST Bazaine","Helvetica Neue",Arial,sans-serif;--font-ui:Archivo,"Helvetica Neue",Arial,sans-serif;
-  color-scheme:light only;box-sizing:border-box;
+  color-scheme:light;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --surface:var(--plum);--surface-alt:#61373f;--ink:var(--light-blue);--ink-muted:#b0b6bb;--line:var(--cream);--soft-line:rgba(255,242,234,.24);
+  --button-fill:var(--light-blue);--button-ink:var(--plum);--bubble:#6a3f48;--bubble-ink:var(--cream);--focus:var(--light-blue);--warn:#ffb48a;--bot:#5e3540;--chat-bg:var(--plum);--tag-ink:#fff2ea;--hc-empty:#5e3540;--hc-centre:var(--plum);--hc-halo:transparent;--hc-nutrition:#a8703a;--hc-sleep:#4f7f86;--hc-movement:#c4521b;--hc-mind:#a0607a;--hc-connection:#7d5560;--hc-prevention:#3f6d73;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --surface:var(--plum);--surface-alt:#61373f;--ink:var(--light-blue);--ink-muted:#b0b6bb;--line:var(--cream);--soft-line:rgba(255,242,234,.24);
+  --button-fill:var(--light-blue);--button-ink:var(--plum);--bubble:#6a3f48;--bubble-ink:var(--cream);--focus:var(--light-blue);--warn:#ffb48a;--bot:#5e3540;--chat-bg:var(--plum);--tag-ink:#fff2ea;--hc-empty:#5e3540;--hc-centre:var(--plum);--hc-halo:transparent;--hc-nutrition:#a8703a;--hc-sleep:#4f7f86;--hc-movement:#c4521b;--hc-mind:#a0607a;--hc-connection:#7d5560;--hc-prevention:#3f6d73;color-scheme:dark}
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
@@ -33,6 +37,8 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{background:var(--surface);color:var(--ink);font-family:var(--font-display);font-weight:300;font-size:18px;line-height:24px}
 .logo{display:block;height:20px;width:auto}
 .logo.dk,.sym.dk{display:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lt{display:none}:root:not([data-theme="light"]) .dk{display:block}}
+:root[data-theme="dark"] .lt{display:none}:root[data-theme="dark"] .dk{display:block}
 button,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 h1,h2,h3{font-weight:200;margin:0;text-wrap:balance}
@@ -307,7 +313,7 @@ strong{font-weight:500}
   </main>
 
   <main class="view" id="report">
-    <div class="repbar"><button class="btn" id="backChat" type="button">Back to the chat with Pando</button></div>
+    <div class="repbar"><button class="btn" id="backChat" type="button">Back to the chat with Pando</button><button class="btn primary" id="dl" type="button" hidden>Download report</button></div>
     <div class="rep" id="repInner"></div>
   </main>
 </div>
@@ -405,7 +411,7 @@ const or = (...fs) => P => { const r = fs.map(f => f(P)); return r.includes(true
 const hasCondition = P => (P.conditions === undefined ? null : !!P.conditions);
 const flagFrom = k => P => (P[k] !== undefined ? !!P[k] : P.conditions === false ? false : null);
 const work = w => P => (P.work ? P.work === w : null);
-const postMeno = P => (P.menopause ? ['post', 'after'].includes(P.menopause) : null);
+const postMeno = P => (P.menopause ? P.menopause === 'after' : null);
 const ALL = () => true;
 const hotFlushes = P => {
   const f = female(P); if (f !== true) return f;
@@ -416,16 +422,16 @@ const hotFlushes = P => {
 const fallFollowUp = P => (P.fallRisk !== undefined ? !!P.fallRisk : age(P) !== null && age(P) < 60 ? false : null);
 
 const TOPICS = [
-  ['about.basics', 'about', 'A2: their age range (fixed options: set "ask":"age") and gender (fixed options: set "ask":"gender"), as two short questions. Ask about gender, never sex. Say briefly that it helps tailor things', 'core', ALL],
+  ['about.basics', 'about', 'A2: their age range (fixed options: set "ask":"age") and sex (fixed options: set "ask":"sex"), as two short questions. Say briefly that it helps tailor things', 'core', ALL],
   ['about.work', 'about', 'A3: working pattern (daytime, shifts including nights, irregular, not working or retired) and whether they look after anyone (children, a partner, a parent)', 'core', ALL],
-  ['about.health', 'about', 'A4 (OPEN): ask this exact question, with no examples and no rephrasing: “Has a doctor, nurse, or other healthcare professional ever formally told you that you have a health condition?”', 'core', ALL],
+  ['about.health', 'about', 'A4 (OPEN): any health conditions a health professional has told them about. Give examples in the question (high blood pressure, diabetes, a heart or lung condition) and make clear anything else counts too', 'core', ALL],
   ['about.bp', 'about', 'A4a: whether they check their blood pressure at home, and whether they take medication for it', 'core', flagFrom('hbp')],
   ['about.diabetes', 'about', 'A4b: how their blood sugar control is at the moment, and whether they know their latest HbA1c', 'core', flagFrom('diabetes')],
   ['about.medicines', 'about', 'A5 (OPEN): regular medicines and supplements they take', 'core', or(ageAtLeast(50), hasCondition)],
   ['about.symptoms', 'about', 'A6: warning symptoms in the past three months. FIXED-WORDING SCREEN: set "screen":"symptoms"', 'core', or(ageAtLeast(40), hasCondition)],
-  ['about.menopause', 'about', 'A7: ask this exact question, with no rephrasing, and set "ask":"menopause" so the options appear: “Have you noticed any changes related to menopause, or are you going through that transition at the moment? You can tell me a little about where you are, or skip this if you\'d prefer.”', 'core', and(female, ageBetween(40, 60))],
+  ['about.menopause', 'about', 'A7: where they are with menopause. Ask gently (fixed options: set "ask":"menopause")', 'core', and(female, ageBetween(40, 60))],
   ['about.other', 'about', 'A8 (OPEN): anything else about their health Pando should know before suggesting anything (an injury, a life stage, anything they want considered). Let them choose what to share', 'core', ALL],
-  ['focus.areas', 'focus', 'B1: ask this exact question, with no rephrasing: “Looking across the six areas of longevity that The Good Span covers (nutrition, sleep, movement, mind, connection and prevention), which one or two would you most like to improve, and why?” If the opening answer already named the areas and why, mark it covered and don’t ask again', 'core', ALL],
+  ['focus.areas', 'focus', 'B1: which one or two areas they’d most like to improve, and why (often answered by the opening question)', 'core', ALL],
 
   ['nutrition.plants', 'nutrition', 'C1 follow-up (OPEN): how many vegetables and fruit they usually have, whole grains, beans and plant variety, only if their description of a typical week didn’t make it clear', 'core', ALL],
   ['nutrition.protein', 'nutrition', 'C1 follow-up: how many main meals include protein (matters more from 60)', 'core', ALL],
@@ -443,7 +449,7 @@ const TOPICS = [
   ['sleep.hours', 'sleep', 'D1 follow-up: hours of actual sleep, if not clear from their answer (fixed options: set "ask":"sleep_hours")', 'core', ALL],
   ['sleep.problems', 'sleep', 'D1 follow-up: trouble getting to sleep, waking in the night, waking too early or waking unrefreshed', 'core', ALL],
   ['sleep.other', 'sleep', 'D2: open catch-all: anything else important about their sleep, such as snoring, breathing problems or restless legs. If snoring, check whether it is loud or with pauses in breathing', 'core', ALL],
-  ['about.menopause_more', 'about', 'A7a (OPEN): for women in perimenopause, menopause or postmenopause, how it’s affecting them day to day, if at all (for example sleep, mood, focus, energy, joints, hot flushes), and anything they already do or use to manage it, such as tracking symptoms, exercise, supplements or hormone therapy. Ask warmly, acknowledge that this stage can be hard, and let them share as much or as little as they like', 'core', P => (female(P) !== true ? female(P) : P.menopause ? ['peri', 'menopause', 'post', 'during', 'after'].includes(P.menopause) : null)],
+  ['about.menopause_more', 'about', 'A7a (OPEN): for women going through or after menopause, how it’s affecting them day to day, if at all (for example sleep, mood, focus, energy, joints, hot flushes), and anything they already do or use to manage it, such as tracking symptoms, exercise, supplements or hormone therapy. Ask warmly, acknowledge that this stage can be hard, and let them share as much or as little as they like', 'core', P => (female(P) !== true ? female(P) : P.menopause ? ['during', 'after'].includes(P.menopause) : null)],
   ['sleep.menopause', 'sleep', 'D3 (OPEN): whether hot flushes or night sweats affect their sleep, and how much. Ask sensitively; skipping is fine', 'core', hotFlushes],
   ['sleep.shift', 'sleep', 'D4: how their shifts affect when and how well they sleep, and recovery after night shifts', 'core', work('shift')],
   ['sleep.naps', 'sleep', 'D5: whether they nap, how often and for how long', 'core', ageAtLeast(60)],
@@ -504,26 +510,27 @@ const TOPICS = [
   ['life.enjoy', 'life', 'I1 (OPEN): what they enjoy doing in their free time', 'core', ALL],
   ['life.barriers', 'life', 'I2 (OPEN): what usually gets in the way of changing a habit, and what has helped before', 'core', ALL],
   ['life.support', 'life', 'I3: what help would make it easier: reminders, tracking, doing it with others, or keeping it private', 'core', ALL],
-  ['life.time', 'life', 'I4: ask this exact question, with no rephrasing, and set "ask":"weekly_time" so the options appear: “How much space do you feel you can make for your wellbeing right now?”', 'core', ALL],
-  ['life.avoid', 'life', 'I5 (OPEN): ask this exact question, with no rephrasing and no answer buttons (set "ask" to null): “Are there any practices, activities, or approaches that you particularly enjoy, dislike, or feel wouldn’t work for you?”', 'core', ALL],
+  ['life.time', 'life', 'I4: realistic weekly time for new habits; things they already do don’t count (fixed options: set "ask":"weekly_time")', 'core', ALL],
+  ['life.pace', 'life', 'I5: how big a change feels right to start with (fixed options: set "ask":"pace")', 'core', ALL],
+  ['life.avoid', 'life', 'I6: anything they’d rather not do (fixed options, choose any: set "ask":"avoid")', 'core', ALL],
 ];
 const TOPIC_IDS = new Set(TOPICS.map(t => t[0]));
-const PROFILE_OPTS = { age: Object.keys(AGE_MIN), work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'peri', 'menopause', 'post', 'during', 'after', 'unknown'] };
-const GENDER_TO_SEX = { woman: 'female', female: 'female', man: 'male', male: 'male', other: 'other', unknown: 'unknown' };
-const GENDER_LABEL = { female: 'woman', male: 'man', other: 'another gender', unknown: 'prefer not to say' };
+const PROFILE_OPTS = { age: Object.keys(AGE_MIN), sex: ['female', 'male', 'other'], work: ['day', 'shift', 'irregular', 'none'], menopause: ['not_started', 'during', 'after', 'unknown'] };
 
 // The only questions with answer buttons. Pando writes the question in its own words and names the set;
 // the page attaches these options. Everything else is an open question.
 const ANSWER_SETS = {
   age:           { opts: ['18–29', '30–39', '40–49', '50–59', '60–69', '70 or over'] },
-  gender:        { opts: ['Woman', 'Man', 'I describe myself another way', 'Prefer not to say'] },
-  menopause:     { opts: ['Haven’t started experiencing changes', 'Experiencing perimenopause', 'Menopause', 'Postmenopause', 'Not sure', 'Prefer not to say'] },
+  sex:           { opts: ['Woman', 'Man', 'I describe myself another way', 'Prefer not to say'] },
+  menopause:     { opts: ['Not started', 'Going through it', 'Through it', 'Not sure', 'Prefer not to say'] },
   sleep_hours:   { opts: ['Less than 5 hours', '5–6 hours', '6–7 hours', '7–8 hours', 'More than 8 hours'] },
   exercise_days: { opts: ['None at the moment', '1 day', '2 days', '3–4 days', '5 or more days'] },
   strength_days: { opts: ['None at the moment', 'Once a week', 'Twice a week', '3 or more times a week'] },
   sitting_hours: { opts: ['Less than 4 hours', '4–6 hours', '6–8 hours', '8–10 hours', 'More than 10 hours'] },
   smoking:       { opts: ['I’ve never smoked or vaped', 'I used to', 'Occasionally', 'Every day'] },
-  weekly_time:   { opts: ['A little — small changes feel manageable', 'Some — I can make room for a few practices', 'Quite a bit — I’m ready to prioritise this', 'It depends on the week', 'I’m not sure yet'] },
+  weekly_time:   { opts: ['About 45–60 minutes', '1–2 hours', '2–4 hours', 'More than 4 hours', 'It varies'] },
+  pace:          { opts: ['Small, easy steps', 'Something in between', 'A bigger challenge'] },
+  avoid:         { multi: true, opts: ['Tracking food', 'Apps or devices', 'Fasting or eating windows', 'Meditation', 'Journalling', 'Early mornings', 'Something else', 'None of these'] },
 };
 
 // Screening questions with fixed wording and answers (validated tools), asked by the app, not paraphrased.
@@ -537,7 +544,8 @@ const SCREENS = {
     { q: 'Feeling down, depressed or hopeless', opts: ['Not at all', 'Several days', 'More than half the days', 'Nearly every day', 'Skip'] } ] },
   alcohol: { topic: 'prevention.alcohol', items: [
     { q: 'How often do you have a drink containing alcohol?', opts: ['Never', 'Monthly or less', '2–4 times a month', '2–3 times a week', '4 or more times a week'], stopIf: 'Never' },
-    { q: 'How many units of alcohol do you drink on a typical day when you’re drinking? As a guide, a pint of beer is about 2–3 units, a medium glass of wine about 2, and a single spirit 1.', opts: ['1–2', '3–4', '5–6', '7–9', '10 or more'] } ] },
+    { q: 'How many units of alcohol do you drink on a typical day when you’re drinking? As a guide, a pint of beer is about 2–3 units, a medium glass of wine about 2, and a single spirit 1.', opts: ['1–2', '3–4', '5–6', '7–9', '10 or more'] },
+    { q: P => `How often have you had ${P.sex === 'female' ? '6 or more units' : P.sex === 'male' ? '8 or more units' : '6 or more units (women) or 8 or more (men)'} on a single occasion in the last year?`, opts: ['Never', 'Less than monthly', 'Monthly', 'Weekly', 'Daily or almost daily'] } ] },
 };
 function screenText(name, i) {
   const s = SCREENS[name], it = s.items[i];
@@ -562,8 +570,8 @@ function screenResult(name, answers) {
   if (name === 'alcohol') {
     const score = answers.reduce((s, a, i) => s + Math.max(0, idx(i)), 0);
     S.screens.alcohol = { score };
-    if (score >= 5) addFlag('higher_risk_drinking', `alcohol frequency and amount ${score}/8`);
-    return `Alcohol, how often and how much on a typical day: score ${score}/8 (5 or more is worth a recommendation). There is no question about drinking a lot on one occasion. Answers: ${answers.join('; ')}.`;
+    if (score >= 5) addFlag('higher_risk_drinking', `AUDIT-C ${score}/12`);
+    return `AUDIT-C alcohol: score ${score}/12 (5 or more indicates increasing risk). Answers: ${answers.join('; ')}.`;
   }
   return '';
 }
@@ -586,7 +594,7 @@ const FLAGS = { exercise_symptoms: 'Possible warning symptoms with exercise', sl
 
 const KEY = 'tgs-chat-v8';
 const welcomeFor = name => `Hi ${name}, I’m Pando.\n\nI’d like to help you build a clearer picture of how you’re doing across the areas of life that contribute to long-term health and wellbeing: nutrition, sleep, movement, mind, connection and prevention.\n\nWe’ll spend around 10 to 15 minutes talking about your everyday habits, what matters to you, what’s working well and where you might want to make a change. I’ll use what you share to create a personalised Good Span report, with practical suggestions that take your circumstances, preferences and goals into account.\n\nThere are no right or wrong answers, and this isn’t a test. The aim is to understand what matters to you and help you find a realistic place to start.\n\nTo begin, what’s prompted you to explore your health and wellbeing at this point in your life?`;
-const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, asking: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
+const fresh = () => ({ user: null, turns: [], covered: [], flags: [], flagLog: [], profile: {}, screens: {}, screen: null, market: 'XX', session: '', reportId: '', reportUrl: '', emailed: false, interest: false, area: 'about', ready: false, chips: [], report: null });
 let S = load() || fresh();
 function load() { try { const v = localStorage.getItem(KEY); return v ? JSON.parse(v) : null; } catch { return null; } }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} }
@@ -669,7 +677,6 @@ async function loadReport(id) {
   save = () => {};
   show('report');
   $('#backChat').hidden = true;
-  $('.repbar').hidden = true;
   $('#repInner').innerHTML = '<div class="loading"><h2>Opening your Starting Position.</h2><div class="bar"><i></i></div></div>';
   try {
     const r = await fetch(`/api/report/${id}`);
@@ -760,7 +767,7 @@ function renderLog(streamText) {
     const me = t.role === 'user';
     const next = vis[i + 1];
     const last = !me && (!next || next.role === 'user') && !(busy && i === vis.length - 1);
-    const text = me ? (t.display ?? t.content) : splitRaw(trimFiller(t.content)).text;
+    const text = me ? (t.display ?? t.content) : splitRaw(t.content).text;
     out.push(`<div class="line ${me ? 'me' : 'bot'} ${last ? 'last' : ''}">${me ? '' : AV}<div class="msg ${me ? 'me' : 'bot'}">${esc(text)}</div></div>`);
   });
   if (busy) out.push(`<div class="line bot last">${AV}${streamText ? `<div class="msg bot">${esc(streamText)}</div>` : '<div class="msg bot typing" aria-label="Typing"><i></i><i></i><i></i></div>'}</div>`);
@@ -795,7 +802,7 @@ function send(text, hidden = false) {
   text = String(text || '').trim();
   if (!text || busy) return;
   if (S.screen) { answerScreen(text); return; }
-  // Whatever they answer, including “I don’t know”, the topic they were asked about counts as covered.
+  // Whatever they answer (including “I don’t know”), the topic they were asked about counts as covered.
   if (!hidden && S.asking && !S.covered.includes(S.asking)) S.covered.push(S.asking);
   S.asking = null;
   S.turns.push({ role: 'user', content: text, hidden });
@@ -812,7 +819,7 @@ async function call() {
   const input = [{ role: 'user', content: rules() + (S.riskNotice ? '\n\nSAFETY NOTICE: the person’s latest message may indicate they are at risk. Follow the crisis rule now.' : '') }, ...recent.map(t => ({ role: t.role, content: t.content }))];
   S.riskNotice = false;
   try {
-    // Wait for the whole reply, then clean it before anyone sees it. If notes about the instructions remain, ask once more.
+    // Wait for the whole reply (they're short), then clean it before anyone sees it.
     let res = await sample(input, { cache: false, modelTier: 'quick', signal: ctl.signal });
     let text = cleanReply(res.text);
     if (leaks(splitRaw(text).text)) {
@@ -855,8 +862,8 @@ function answerScreen(ans) {
   save(); call();
 }
 
-// Pando sometimes thinks out loud. Keep only the final spoken message, and detect anything that is still a note.
-const LEAK = /(\bwait,|\bhmm\b|\brewrite\b|\bfinal(?: answer| reply| version)?:|\bhere(?:'|’)s (?:the|my) (?:reply|answer|message)\b|\bthe spec\b|\bbanned\b|\bfiller\b|\bthe rules?\b|\bmy instructions\b|\bI must (?:not|avoid)\b|\bI should (?:not |avoid |also |note )|\bnot on the .* list\b|"ask"|\bdata block\b|\btopic id\b|\bcovered\b.*\bmark\b|\bmark(?:ed)? (?:it |this )?covered\b|@@META)/i;
+// Pando sometimes “thinks out loud” (drafts, rewrites, notes about its rules). Keep only the final message.
+const LEAK = /(\bwait,|\bhmm\b|\brewrite\b|\bfinal( answer| reply| version)?:|\bhere(?:'|’)s (the|my) (reply|answer|message)|\bthe spec\b|\bbanned\b|\bfiller\b|\bthe rules?\b|\bmy instructions\b|\bI must (not|avoid)\b|\bI should (not |avoid |also |note )|\bnot on the .* list\b|"ask"|\bdata block\b|\btopic id\b|\bcovered\b.*\bmark\b|\bmark(ed)? (it |this )?covered\b|@@META)/i;
 function leaks(said) { return LEAK.test(said || ''); }
 function cleanReply(raw) {
   let text = String(raw || '');
@@ -868,36 +875,17 @@ function cleanReply(raw) {
 }
 function stripLeaks(raw) {
   const parts = String(raw || '').split('@@META');
-  const keep = parts[0].split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim() && !LEAK.test(s) && !isInternalNote(s));
+  const keep = parts[0].split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim() && !LEAK.test(s));
   const last = keep.filter(s => /\?\s*$/.test(s)).pop();
   const said = (keep.length ? keep.slice(-2).join(' ') : '') || last || 'Could you tell me a little more?';
-  return trimFiller(said + (parts.length > 1 ? '\n@@META' + parts.slice(1).join('@@META') : ''));
+  return said + (parts.length > 1 ? '\n@@META' + parts.slice(1).join('@@META') : '');
 }
 
-// Keeps only the words Pando would say. Drops drafts, rewrites, and notes about the instructions.
-function isInternalNote(s) {
-  return /(?:\b(?:rewrite|rewriting|rephrase|rephrasing|banned list|fillers?|opener|answer buttons?|fixed options|as instructed|exact question|fixed-wording|the spec)\b|\bspec\s*:|\bi (?:must|should|need to|have to)\b|\bhere(?:'|’)s the reply\b|^(?:reply|final(?: reply)?)\s*:|["“']ask["”']\s*:|\bask\s*[:=]\s*["“']?(?:age|gender|menopause|sleep_hours|exercise_days|strength_days|sitting_hours|smoking|weekly_time|null)\b|\b(?:note|mark) the \w+ covered\b)/i.test(s);
-}
-function isFillerSentence(s) {
-  return !s.includes('?') && s.length < 90 && /^(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b/i.test(s);
-}
-function spokenParts(head) {
-  const parts = head.replace(/\r/g, '').split(/\n+|(?<=[.!?])\s+/).map(s => s.replace(/^(?:hmm[,.]?\s+|wait,\s+)/i, '').trim()).filter(Boolean);
-  const ok = parts.map(s => !isInternalNote(s) && !isFillerSentence(s));
-  const runs = [];
-  let run = [];
-  parts.forEach((s, i) => { if (ok[i]) run.push(s); else if (run.length) { runs.push(run); run = []; } });
-  if (run.length) runs.push(run);
-  return { text: (runs[runs.length - 1] || []).join(' ').replace(/\s{2,}/g, ' ').trim(), leaked: parts.some(isInternalNote) };
-}
+// Removes an opening filler sentence such as “Lovely, that gives us a clear direction.” before the question.
 function trimFiller(raw) {
-  const cut = raw.indexOf('@@META');
-  const head = cut < 0 ? raw : raw.slice(0, cut);
-  const tail = cut < 0 ? '' : raw.slice(cut);
-  const { text, leaked } = spokenParts(head);
-  if (text.length > 8 || leaked) return text + tail;
-  const fallback = head.trim();
-  return (fallback.length > 8 ? fallback : text) + tail;
+  const re = /^\s*(?:(?:lovely|great|perfect|brilliant|wonderful|fantastic|thanks|thank you|got it|okay|ok|right|noted|understood|that'?s (?:really |very )?(?:helpful|useful|great|clear))\b[^.!?\n]*[.!?]\s*)+/i;
+  const out = raw.replace(re, '');
+  return out.split('@@META')[0].trim().length > 8 ? out : raw;
 }
 
 function applyMeta(m) {
@@ -906,14 +894,12 @@ function applyMeta(m) {
   for (const f of (Array.isArray(m.flags) ? m.flags : [])) if (typeof f === 'string' && /^[a-z_]{3,30}$/.test(f) && !S.flags.includes(f)) addFlag(f);
   if (AREAS.some(a => a.id === m.area)) S.area = m.area;
   S.asking = TOPIC_IDS.has(m.asking) ? m.asking : null;
-  const set = ANSWER_SETS[m.ask];
+  const set = ANSWER_SETS[m.ask === 'gender' ? 'sex' : m.ask];
   S.chips = set ? set.opts.slice() : [];
   S.chipsMulti = !!set?.multi;
   if (m.profile && typeof m.profile === 'object') {
     const p = m.profile, P = S.profile || (S.profile = {});
-    for (const k of ['age', 'work']) if (PROFILE_OPTS[k].includes(p[k])) P[k] = p[k];
-    const stated = typeof p.gender === 'string' ? p.gender : p.sex;
-    if (GENDER_TO_SEX[stated]) P.sex = GENDER_TO_SEX[stated];
+    for (const k of ['age', 'sex', 'work']) if (PROFILE_OPTS[k].includes(p[k])) P[k] = p[k];
     if (typeof p.conditions === 'boolean') P.conditions = p.conditions;
     for (const k of ['hbp', 'diabetes', 'fallRisk']) if (typeof p[k] === 'boolean') P[k] = p[k];
     if (PROFILE_OPTS.menopause.includes(p.menopause)) P.menopause = p.menopause;
@@ -938,33 +924,32 @@ function rules() {
   const pl = plan().filter(t => !S.covered.includes(t.id));
   const ask = pl.filter(t => t.tier === 'ask'), opt = pl.filter(t => t.tier === 'optional'), later = pl.filter(t => t.tier === 'later');
   const P = S.profile || {};
-  const known = [P.age && `age ${P.age}`, GENDER_LABEL[P.sex] && `gender: ${GENDER_LABEL[P.sex]}`, P.work && `work: ${P.work}`, P.conditions !== undefined && (P.conditions ? 'has a health condition' : 'no diagnosed conditions'), P.hbp && 'high blood pressure', P.diabetes && 'diabetes', P.menopause && `menopause: ${P.menopause}`, P.fallRisk !== undefined && (P.fallRisk ? 'has fallen or worries about falling' : 'no falls or worries'), P.focus?.length && `focus: ${P.focus.join(', ')}`].filter(Boolean).join('; ') || 'nothing yet';
+  const known = [P.age && `age ${P.age}`, P.sex && P.sex, P.work && `work: ${P.work}`, P.conditions !== undefined && (P.conditions ? 'has a health condition' : 'no diagnosed conditions'), P.hbp && 'high blood pressure', P.diabetes && 'diabetes', P.menopause && `menopause: ${P.menopause}`, P.fallRisk !== undefined && (P.fallRisk ? 'has fallen or worries about falling' : 'no falls or worries'), P.focus?.length && `focus: ${P.focus.join(', ')}`].filter(Boolean).join('; ') || 'nothing yet';
   return `You are Pando, the assistant for The Good Span, a programme that helps adults build healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. Their first name is ${S.user?.name || 'not given'}. Use it sparingly: now and then at a natural moment and in the wrap-up, never in every message. You are having a friendly, private conversation in British English to understand this person’s current habits, so that a personalised report can be written afterwards. You are not a doctor and you never diagnose.
 
 HOW TO TALK
 - Warm, plain and efficient. A skilled coach running a focused intake, not a chatty friend.
 - Keep every reply short: usually one sentence of transition at most, then ONE question. Aim for under 35 words.
-- Write only the final message to the person. Never include drafts, rewrites, self-corrections, reasoning, or any mention of your instructions, rules, topics, answer buttons, or the data block.
 - Acknowledgements are optional and brief (a few words), and only when they add something, for example a short, warm line when someone shares something difficult. Most replies should go straight to the next question. Never repeat back or summarise what they just said. Never start a reply with “Thanks”, “Thank you”, “Great”, “Got it”, “Perfect”, “Lovely”, “Understood”, “I hear you”, “That makes sense” or similar filler.
+- Write only the final message to the person. Never include drafts, rewrites, self-corrections, reasoning or any mention of your instructions, rules, topics or data block.
 - No bullet points, headings, bold or emojis. No advice: recommendations belong in the report. If asked directly, give one short pointer, then continue.
 - Never re-ask something already answered or mentioned in passing; mark it covered.
-- “Prefer not to say”, “I don’t know”, “not sure” or skipping are all fine answers: mark the topic covered and move on. Never ask the same thing again later. Set "asking" to the topic id of the question you just asked, so their answer is recorded even when they are not sure.
+- “Prefer not to say”, “I don’t know”, “not sure” or skipping are all fine answers: mark the topic covered and move on. Never ask the same thing again later.
 - If they want to stop early, check they’re sure, then wrap up and set ready to true.
 
 OPEN BY DEFAULT
-- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”. Two questions are exceptions and must be asked in the exact words given: the health-conditions question, even though it starts with “Has”, and the practices question, even though it starts with “Are”.
+- Almost every question is open and conversational, answered in the person’s own words. Phrase open questions so they invite a real answer: start with “What”, “How” or “Tell me about”, not “Do you”, “Have you” or “Are you”. For example, “What, if anything, affects how you move, like pain, an old injury or a health condition?” rather than “Do you have any pain…?”.
 - Answer buttons exist for only a few topics, and the app supplies them, not you. When your question is one of these, write a short, direct question that fits the options and set "ask" to its name. Never list options in your message.
-  · "age": their age range · "gender": their gender, never the word sex · "menopause": menopause stage (women 40–60). For menopause, use the exact question in the topic, not a shorter version.
+  · "age": their age range · "sex": their sex · "menopause": menopause stage (women 40–60)
   · "sleep_hours": hours of sleep · "exercise_days": days a week of exercise that makes them breathe harder · "strength_days": strength sessions a week
   · "sitting_hours": hours sitting on a typical day · "smoking": whether they smoke or vape
-  · "weekly_time": how much space they can make for their wellbeing right now. Use the exact question in the topic, not a shorter version.
+  · "weekly_time": time a week for new habits · "pace": how big a change feels right · "avoid": types of practice they’d rather not do (choose any)
 - For every other question, set "ask" to null. People can always type instead of tapping.
 - If someone picks “Something else”, or an answer hints at something that matters, ask one short open follow-up.
 - Ask neutral questions that don’t assume an answer: “How have you been feeling lately?”, not “How stressed have you been?”; “How does sleep usually go for you?”, not “What’s stopping you sleeping well?”.
-- Your reply is only the words you would say to the person. Never include a draft, a revision, a note to yourself, or a reason for asking or skipping something. Never say “opener”, “avoid that”, “skip that”, “topic”, “covered”, “as instructed”, “rewrite”, “final”, or anything about how the conversation is organised.
-- Don’t narrate the conversation. Never comment on progress or what’s been covered (“Movement’s covered well”, “That gives us a clear direction”, “Next, let’s look at…”). When moving to a new area, go straight to the question; at most a few words such as “And day to day,” or “On sleep,”.
-- Where an area is not a focus, ask the specific questions directly, one after another.
-- Where an area is a focus, ask only the 2–3 questions that will matter most for their recommendations. Don’t work through every topic on the list.
+- Don’t narrate the conversation. Never comment on progress or what’s been covered (“Movement’s covered well”, “That gives us a clear direction”, “Next, let’s look at…”). When moving to a new area, go straight to the question; at most a few words of transition such as “And day to day,” or “On sleep,”.
+- In areas that are NOT a focus, skip the broad opener and go straight to the closed core questions, one after another, with a few words of transition at most.
+- In FOCUS areas, after the open opener, ask only the 2–3 follow-ups that will matter most for their recommendations. Don’t work through every topic on the list.
 - Ask “ONLY IF RELEVANT” topics only when something they said clearly calls for it.
 - Ask for their first name only if it comes up naturally; never require it.
 - Aim to finish in about 20 of your messages in total, so the conversation takes 10–15 minutes. Prioritise what matters most for their recommendations; it’s better to leave a minor topic unasked than to run long.
@@ -988,7 +973,7 @@ SAFETY (the person is in ${lines().country || 'an unknown country'}; use these n
 
 PERSONALISATION
 Not everything is relevant to everyone. The list below is already tailored to what you know about this person, and it changes as you learn more. Ask what is on it, and nothing that isn’t.
-- Early on, after their first answer, find out the basics that shape everything else: their focus, age range and gender, work pattern, health conditions, and anything else important about their health. Do it lightly over two or three turns, explaining it helps you tailor things. Ask about gender, never sex, and never use the word sex with them.
+- Early on, after their first answer, find out the basics that shape everything else: their focus, age range and sex, work pattern, health conditions, and anything else important about their health. Do it lightly over two or three turns, explaining it helps you tailor things.
 - Adapt how you ask, not just what you ask: wording, examples and emphasis should suit their age, life stage, work and what they’ve told you (e.g. retirement versus a busy job with young children, night shifts, a health condition).
 - Go deeper in their focus areas. Elsewhere keep to the essentials.
 - Ask topics under “only if relevant” only when something they’ve said makes them matter (e.g. they mention poor sleep, so ask about caffeine and evening habits). Otherwise leave them out.
@@ -1002,16 +987,16 @@ ${ask.map(t => `${t.id}: ${t.desc}`).join('\n') || '(nothing left: wrap up warml
 
 ONLY IF RELEVANT (from what they’ve said)
 ${opt.map(t => `${t.id}: ${t.desc}`).join('\n') || '(none)'}
-${later.length ? `\nUNLOCKED ONCE YOU KNOW THEIR AGE, GENDER OR WORK PATTERN (don’t ask yet): ${later.map(t => t.id).join(', ')}\n` : ''}
+${later.length ? `\nUNLOCKED ONCE YOU KNOW THEIR AGE, SEX OR WORK PATTERN (don’t ask yet): ${later.map(t => t.id).join(', ')}\n` : ''}
 ALREADY COVERED (don’t ask again): ${S.covered.join(', ') || 'nothing yet'}
 
 When nothing is left under TO ASK (and anything relevant under ONLY IF RELEVANT is done), give a short warm wrap-up (no summary of their answers, no advice), say their personalised report with recommendations is ready, and set ready to true.
 
-OUTPUT FORMAT, exactly. Above @@META, write only the spoken reply. No heading, draft, or note before it:
+OUTPUT FORMAT, exactly:
 <your reply to the person>
 @@META
 {"covered":["topic ids the person has now answered, including any from earlier you hadn’t marked"],"profile":{},"area":"the area id your question is about","ask":null,"asking":"the topic id your question is about, or null","flags":[],"screen":null,"ready":false}
-"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "gender" woman, man, other (another way) or unknown (prefer not to say or skipped); "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started (Haven’t started experiencing changes), peri (Experiencing perimenopause), menopause (Menopause), post (Postmenopause) or unknown (Not sure or prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
+"profile": include only fields you have just learned: "age" one of 18-29, 30-39, 40-49, 50-59, 60-69, 70+; "sex" female, male or other; "work" day, shift, irregular or none (not working or retired); "conditions" true or false; "hbp" true or false (high blood pressure); "diabetes" true or false; "menopause" not_started, during, after or unknown (if they prefer not to say); "fallRisk" true if they’ve fallen in the past year or worry about falling, otherwise false; "focus" up to 3 of Nutrition, Sleep, Movement, Mind, Connection, Prevention.
 Area ids: about, focus, nutrition, sleep, movement, mind, connection, prevention, life. Nothing after the JSON.`;
 }
 
@@ -1099,7 +1084,7 @@ function mechForPrompt(names) {
   return MECH.filter(m => !names || names.includes(m[0])).map(m => `${m[0]} | when: ${m[1]} | how: ${m[2]} | e.g. ${m[3]} | guardrail: ${m[4]}`).join('\n');
 }
 function transcriptText() {
-  return S.turns.filter(t => !t.hidden).map(t => `${t.role === 'user' ? 'PERSON' : 'PANDO'}: ${t.role === 'user' ? (t.display ?? t.content) : splitRaw(trimFiller(t.content)).text}`).join('\n');
+  return S.turns.filter(t => !t.hidden).map(t => `${t.role === 'user' ? 'PERSON' : 'PANDO'}: ${t.role === 'user' ? (t.display ?? t.content) : splitRaw(t.content).text}`).join('\n');
 }
 const CONTEXT = () => `THE CONVERSATION
 ${transcriptText()}
@@ -1107,7 +1092,7 @@ ${transcriptText()}
 WHO THEY ARE: ${JSON.stringify(S.profile || {})}
 FIRST NAME: ${S.user?.name || 'not given'}
 SAFETY FLAGS RAISED: ${S.flags.join(', ') || 'none'}
-SCREENING RESULTS: ${JSON.stringify(S.screens || {})} (PHQ-4 anxiety and depression 0–6, 3+ elevated; alcohol frequency and typical amount 0–8, 5+ worth a recommendation. No question was asked about drinking a lot on one occasion.)`;
+SCREENING RESULTS: ${JSON.stringify(S.screens || {})} (PHQ-4 anxiety and depression 0–6, 3+ elevated; AUDIT-C 0–12, 5+ increasing risk)`;
 
 function planPrompt() {
   return `You are planning a personal Good Span report. The Good Span helps adults build lasting healthy habits across six pillars: Nutrition, Sleep, Movement, Mind, Connection and Prevention. British English, warm, plain and confident, second person (“you”). Honest and specific, never shaming, never diagnostic. Write in flowing paragraphs, never bullet points. TONE: professional, warm and supportive, like an experienced Good Span Longevity expert writing to a client they respect. Calm and measured. Not patronising: no praise inflation (“great job”, “amazing”), no exclamation marks, no explaining the obvious, no telling them how they feel. Not overstating: describe benefits as the evidence supports (“can help”, “is linked with”, “tends to”), never certainty or hype.
@@ -1116,15 +1101,15 @@ ${CONTEXT()}
 TOPICS NOT REACHED: ${plan().filter(t => t.tier === 'ask' && !S.covered.includes(t.id)).map(t => t.id).join(', ') || 'none'}
 
 STEP 1. ASSESS EACH PILLAR against mainstream UK public-health guidance (150 min moderate activity plus strength twice a week, 7–9 hours’ sleep, 5 a day and fibre, under 14 units of alcohol a week, no smoking, regular social contact, up-to-date checks and screening for their age): "Learning" (few core habits yet, clear gaps), "Developing" (some solid habits, clear room to grow) or "Mastering" (strong, consistent habits). "confidence" is "low" if the conversation said little. "assessment" is 2–4 sentences using what they actually said, following the calibration rules.
-Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects how often they drink and how much on a typical day, smoking, and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
+Use the screening results and segment answers in the assessment: Mind reflects the PHQ-4 mood check if taken; Prevention reflects AUDIT-C, smoking and whether checks, screening and vaccines due for their age are up to date; Connection reflects loneliness as well as contact; Movement reflects falls and everyday function for people over 65. Never quote scores, tool names or labels such as “higher-risk drinker”; describe what they mean in plain words.
 
 ${CALIBRATION}
 
 STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change in one area of their life (e.g. their evenings, their working day, how they exercise), built from 2–5 complementary practices from the LIBRARY that work together. Rules:
-- Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if their frequency-and-amount score is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
+- Prioritise their focus areas (usually 1–2 recommendations each). Then add at most two recommendations outside their focus areas, choosing in this order of priority: (1) alcohol if AUDIT-C is 5 or more and it isn’t already covered; (2) connection if they often feel lonely; (3) a health checks recommendation if two or more checks, screenings or vaccines due for their age are overdue or unknown; (4) the biggest remaining gap. Five recommendations at most in total. A recommendation may draw a practice from a neighbouring pillar when it clearly belongs to the same change (e.g. alcohol in an evening sleep routine).
 - Apply these SEGMENT RULES whenever they fit the person:
   · Aged 65+, or fallen or worried about falling: include strength and balance in any movement recommendation; if two or more falls, or difficulty getting up from a chair, lead with balance and functional strength and suggest taking their falls to their next conversation with a Good Span Longevity expert, who can arrange a falls review (PR33), and home hazards or night lighting where relevant.
-  · Women in perimenopause, menopause or postmenopause (menopause stage “peri”, “menopause” or “post”, hot flushes or night sweats, or the menopause flag): this is a priority segment.
+  · Women in perimenopause, menopause or postmenopause (menopause stage “during” or “after”, hot flushes or night sweats, or the menopause flag): this is a priority segment.
     – Draw on the practices in the category “Menopause & Hormonal Health” (PR73, PR74, PR75 (perimenopause), SL51, SL52, MI106, MI107, MI108, MI109, MI110, MO92, MO93, MO94, NU83, NU84, NU85, CO78) wherever they fit, alongside the general ones, so their recommendations reflect the menopause evidence; favour strength and weight-bearing exercise for bone health, and calcium and vitamin D from food.
     – Always include PR73 (symptom and mood diary) in one recommendation, and PR74 (preparing for the Longevity expert conversation) wherever it fits naturally.
     – If they have bone risk factors (past fracture, thin bones, long-term steroids), suggest taking the question of a bone scan to their Good Span Longevity expert (PR44).
@@ -1142,8 +1127,8 @@ STEP 2. PLAN 3 TO 5 RECOMMENDATIONS. Each recommendation is one coherent change 
   · Flag exercise_symptoms or high_bp_reading: no step-ups in exercise intensity until a clinician has reviewed; keep to gentle activity they already do, and suggest talking it through with their Good Span Longevity expert before stepping up.
   · Flag alcohol_dependence: only gradual reduction, never suggest stopping suddenly; suggest taking it to their Good Span Longevity expert, as stopping suddenly can be unsafe.
   · Flag food_relationship: no food tracking, calorie or portion targets, eating windows or restrictive practices.
-- Micro-personalise the choice: their age, gender, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, and what they said they dislike or feel wouldn’t work. Size new habits to the space they can make: “A little” or “I’m not sure yet” → about 60 new minutes a week and small changes; “It depends on the week” → about 60, with room to do a little more in an easier week; “Some” → about 120 minutes and a few practices; “Quite a bit” → about 240 minutes. If they didn’t answer, use about 60.
-- Match levels to them: Learning practices when they can make only a little space, are not sure yet, or are starting out; Developing when they can make some room; Mastering only where they are already strong and ready to prioritise this. Rows with no level are general practices: use them when they fit.
+- Micro-personalise the choice: their age, sex, life stage, work pattern, health conditions, injuries, what they enjoy, what they’ve tried, what they’d rather not do, the pace they asked for and the time they have (45–60 min → about 60 new minutes a week in total; 1–2 h → 120; 2–4 h → 240; 4 h+ → 300; unknown → 60).
+- Match levels to them: Learning practices for small steps or where they are starting out; Developing for “something in between”; Mastering only where they are already strong. Rows with no level are general practices: use them when they fit.
 - Never choose a practice whose caution applies to them without that caution being addressed, or anything clashing with what they told you. Don’t recommend what they already do well. Prefer Foundation and Targeted evidence; use Explore practices only as supporting elements.
 - For each recommendation, diagnose what gets in the way (COM-B: capability, opportunity or motivation) from what they said, and choose 2–4 MECHANISMS that answer it. Use social, tracking or reminder mechanisms only if they welcomed that kind of support. Never assume motivation is the problem.
 
@@ -1180,7 +1165,7 @@ ${CALIBRATION}
 For each recommendation below, write:
 - "title": a short, plain headline phrased as a recommendation, specific to them (e.g. “Rebuild your evenings so sleep can do its job”), not the practice name.
 - "why" (50–70 words): why this change is right for them now, naming what they told you and the reasoning a good clinician or coach would give. Don’t repeat their overall assessment.
-- "what" (80–120 words, one or two short paragraphs separated by a blank line): exactly what to do, combining the practices into one routine with doses, timings and how, adapted to their life (schedule, home, work, injuries, what they enjoy, and what they dislike or feel wouldn’t work). Say where to start with an easier first step when they can make only a little space, it depends on the week, or they are not sure yet. If a caution applies to them, state it plainly here.
+- "what" (80–120 words, one or two short paragraphs separated by a blank line): exactly what to do, combining the practices into one routine with doses, timings and how, adapted to their life (schedule, home, work, injuries, what they enjoy). Say where to start if their pace calls for an easier first step. If a caution applies to them, state it plainly here.
 - "stick" (70–110 words): how to make it happen AND why that will work for them. Apply the mechanisms to the barriers they described in concrete detail (the cue, what to prepare, what to do when it slips), and for each one explain in plain words the behavioural reason it helps the habit stick, so the advice feels convincing rather than obvious. For example: linking a new habit to something they already do every day means the existing routine acts as the reminder, so it relies less on memory or willpower and becomes automatic sooner; deciding the when and where in advance removes a decision at the moment they’re tired, which is when good intentions usually fail; making the healthy option the easiest one within reach works because most daily choices are made on autopilot. Use everyday language rather than technical terms, and tie each reason to what they told you.
 Style for all three: short, plain sentences; say each thing once (never repeat a point between sections or from the assessment); cut filler and generic advice. Mark the 2–4 most important actions, doses or cautions in each recommendation in **double asterisks**, a few words each; don’t bold whole sentences.
 
@@ -1317,15 +1302,15 @@ function honeycomb(R) {
     Prevention: '<path d="M12 19s-7-4.3-7-9.2A3.8 3.8 0 0 1 12 7.6a3.8 3.8 0 0 1 7 2.2C19 14.7 12 19 12 19Z"/><path d="M7.5 12.2h2.6l1.2-2 1.6 3.6 1.1-1.6h2.5"/>',
   };
   const pos = { Nutrition: -90, Sleep: -30, Movement: 30, Mind: 90, Connection: 150, Prevention: 210 };
-  const state = p => ((R.focus || []).includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve');
-  const LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
+  const state = p => (R.focus.includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve');
+  const LABEL = { focus: 'Current focus', improve: 'Room to explore', well: 'Already part of your routine' };
   const cells = R.pillars.map(p => {
     const a = pos[p.pillar] * Math.PI / 180, x = cx + d * Math.cos(a), y = cy + d * Math.sin(a), s = state(p);
     return `<g>
       <polygon points="${hex(x, y)}" fill="${s === 'focus' ? '#f5a4c2' : '#ffffff'}" stroke="#4d2831" stroke-width="2" ${s === 'improve' ? 'stroke-dasharray="7 5"' : ''} stroke-linejoin="round"/>
       <g transform="translate(${(x - 15).toFixed(1)} ${(y - 62).toFixed(1)}) scale(1.25)" fill="none" stroke="#4d2831" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[p.pillar]}</g>
       <text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle" class="hc-name">${p.pillar.toUpperCase()}</text>
-      <text x="${x.toFixed(1)}" y="${(y + 30).toFixed(1)}" text-anchor="middle" class="hc-lv">${LABEL[s]}</text>
+      <text x="${x.toFixed(1)}" y="${(y + 30).toFixed(1)}" text-anchor="middle" class="hc-lv">${LABEL[s].length > 18 ? (() => { const w = LABEL[s].split(' '), h = Math.ceil(w.length / 2); return `<tspan x="${x.toFixed(1)}">${w.slice(0, h).join(' ')}</tspan><tspan x="${x.toFixed(1)}" dy="21">${w.slice(h).join(' ')}</tspan>`; })() : LABEL[s]}</text>
     </g>`;
   }).join('');
   const miniHex = (x, y, s) => `<polygon points="${hex(x, y, 11)}" fill="${s === 'focus' ? '#f5a4c2' : '#ffffff'}" stroke="#4d2831" stroke-width="1.5" ${s === 'improve' ? 'stroke-dasharray="3 2.5"' : ''}/>`;
@@ -1342,9 +1327,7 @@ function paras(s) { return String(s || '').split(/\n\s*\n/).map(x => x.trim()).f
 
 function reportHTML() {
   const R = S.report;
-  const state = p => ((R.focus || []).includes(p.pillar) ? 'focus' : p.level === 'Mastering' ? 'well' : 'improve');
-  const LABEL = { focus: 'Focus now', improve: 'Worth improving', well: 'Going well' };
-  const BARS = { focus: 1, improve: 2, well: 3 };
+  const lvN = { Learning: 1, Developing: 2, Mastering: 3 };
   const date = R.date ? new Date(R.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   return `
   <section>
@@ -1357,16 +1340,15 @@ function reportHTML() {
   <section>
     <h2>Starting position.</h2>
     ${honeycomb(R)}
-    <div class="legend"><span>One bar: Focus now</span><span>Two bars: Worth improving</span><span>Three bars: Going well</span></div>
-    <div class="pgrid">${R.pillars.map(p => {
-      const s = state(p);
-      return `
-      <article class="pc ${s === 'focus' ? 'pri' : ''}" style="--ac:${color(areaOfPillar(p.pillar))}">
-        <div class="hd"><span>${p.pillar}</span><b class="lv">${LABEL[s]}</b></div>
-        <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= BARS[s] ? 'on' : ''}"></i>`).join('')}</div>
-        <p>${rich(String(p.assessment || '').replace(/\s*based on only a little of the conversation\.?/ig, '').trim())}</p>
-      </article>`;
-    }).join('')}</div>
+    <div class="legend"><span>One bar: Learning</span><span>Two bars: Developing</span><span>Three bars: Mastering</span></div>
+    <div class="pgrid">${R.pillars.map(p => `
+      <article class="pc ${R.focus.includes(p.pillar) ? 'pri' : ''}" style="--ac:${color(areaOfPillar(p.pillar))}">
+        <div class="hd"><span>${p.pillar}</span><b class="lv">${p.level || 'Not enough to say'}</b></div>
+        <div class="scale" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= (lvN[p.level] || 0) ? 'on' : ''}"></i>`).join('')}</div>
+        ${R.focus.includes(p.pillar) ? '<p class="lowc">A focus area</p>' : ''}
+        <p>${rich(p.assessment)}</p>
+        ${p.confidence === 'low' ? '<p class="lowc">Based on only a little of the conversation</p>' : ''}
+      </article>`).join('')}</div>
   </section>
 
   <section>
@@ -1416,6 +1398,7 @@ function reportHTML() {
 function renderReport(keepScroll = false) {
   if (!S.report) { openChat(); return; }
   $('#repInner').innerHTML = reportHTML();
+  $('#dl').hidden = true;
   if (!keepScroll) $('#report').scrollTop = 0;
 }
 // Re-draws the report after a small change (register interest, email status) without moving the page.
@@ -1471,7 +1454,7 @@ function printReport() {
 async function saveReport() {
   const R = S.report; if (!R || !downloads) return;
   const L = [`# The Good Span: ${S.user?.name ? S.user.name + '’s' : 'your'} report`, '', R.summary, '', '## Starting position', ''];
-  for (const p of R.pillars) L.push(`### ${p.pillar}: ${p.level || 'not enough to say'}${(R.focus || []).includes(p.pillar) ? ' (focus area)' : ''}`, '', p.assessment, '');
+  for (const p of R.pillars) L.push(`### ${p.pillar}: ${p.level || 'not enough to say'}${R.focus.includes(p.pillar) ? ' (focus area)' : ''}`, '', p.assessment, '');
   L.push('## Our recommendations for you', '');
   for (const r of R.recommendations) L.push(`### ${r.title}`, '', ...(r.why ? ['**Why this, for you.** ' + r.why, '', '**What to do.** ' + r.what, '', '**Making it stick.** ' + r.stick] : [r.body]), '', `_Practices: ${r.practiceIds.map(id => LIBMAP[id].f).join('; ')}._`, '');
   if (R.keepDoing) L.push('## Keep doing', '', R.keepDoing, '');
